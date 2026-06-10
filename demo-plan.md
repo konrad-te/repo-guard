@@ -110,9 +110,9 @@ source .venv/bin/activate
 9. Demonstrate partial file editing:
 
    ```bash
-   repoguard patch ./demo-vulnerable-app app/upload.py \
-     --find "MAX_FILES = None" \
-     --replace "MAX_FILES = 10"
+   repoguard patch examples/vulnerable-upload-app app.py \
+     --find "for file in files:" \
+     --replace "for file in files[:10]:"
    ```
 
    Explain that RepoGuard previews the targeted edit first. Then apply it with `--yes` if the preview is correct.

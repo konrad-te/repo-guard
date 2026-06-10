@@ -70,6 +70,8 @@ COUNT_LIMIT_PATTERNS = (
     re.compile(r"len\(\s*files\s*\)\s*(>|>=)\s*\d+", re.IGNORECASE),
     re.compile(r"len\(\s*request\.files[^)]*\)\s*(>|>=)\s*\d+", re.IGNORECASE),
     re.compile(r"files\.length\s*(>|>=)\s*\d+", re.IGNORECASE),
+    re.compile(r"getlist\([^)]*\)\s*\[:\s*\d+\s*\]", re.IGNORECASE),
+    re.compile(r"in\s+\w+\s*\[:\s*\d+\s*\]", re.IGNORECASE),
 )
 
 TYPE_VALIDATION_MARKERS = (

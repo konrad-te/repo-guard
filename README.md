@@ -83,17 +83,17 @@ Exit codes:
 RepoGuard also includes a guarded partial-edit command for targeted fixes:
 
 ```bash
-repoguard patch ./my-app app/upload.py \
-  --find "MAX_FILES = None" \
-  --replace "MAX_FILES = 10"
+repoguard patch examples/vulnerable-upload-app app.py \
+  --find "for file in files:" \
+  --replace "for file in files[:10]:"
 ```
 
 The command is dry-run by default and prints a preview. Add `--yes` to write the change:
 
 ```bash
-repoguard patch ./my-app app/upload.py \
-  --find "MAX_FILES = None" \
-  --replace "MAX_FILES = 10" \
+repoguard patch examples/vulnerable-upload-app app.py \
+  --find "for file in files:" \
+  --replace "for file in files[:10]:" \
   --yes
 ```
 
