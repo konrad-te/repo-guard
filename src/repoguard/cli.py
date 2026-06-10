@@ -7,6 +7,7 @@ from pathlib import Path
 
 from repoguard.config import RepoGuardConfig
 from repoguard.editing.patcher import apply_exact_replacement
+from repoguard.gui import run_gui
 from repoguard.models import SEVERITY_ORDER, Severity
 from repoguard.orchestrator.runner import ScanOrchestrator
 
@@ -36,6 +37,12 @@ def build_parser() -> argparse.ArgumentParser:
     patch.add_argument("--find", required=True, help="Exact text to replace.")
     patch.add_argument("--replace", required=True, help="Replacement text.")
     patch.add_argument("--yes", action="store_true", help="Write the patch. Without this flag RepoGuard performs a dry run.")
+
+    gui = sub.add_parser("gui", help="Start the local RepoGuard web interface.")
+    gui.add_argument("--host", default="127.0.0.1", help="Host interface for the local GUI server.")
+    gui.add_argument("--port", type=int, default=8765, help="Port for the local GUI server.")
+    gui.add_argument("--output", type=Path, default=Path("reports"), help="Report directory used by the GUI.")
+    gui.add_argument("--config", type=Path, help="Path to non-secret RepoGuard TOML config file.")
     return parser
 
 
@@ -95,6 +102,8 @@ def main(argv: list[str] | None = None) -> None:
             if result.preview:
                 print(result.preview)
             raise SystemExit(0 if result.changed or not args.yes else 1)
+        if args.command == "gui":
+            run_gui(args.host, args.port, args.output, args.config)
     except KeyboardInterrupt:
         raise SystemExit(130)
     except Exception as exc:

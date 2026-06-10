@@ -51,6 +51,20 @@ On macOS/Linux, activate the environment with:
 source .venv/bin/activate
 ```
 
+## Demo Option C: Local GUI
+
+```bash
+repoguard gui
+```
+
+Open:
+
+```text
+http://127.0.0.1:8765
+```
+
+The GUI can run the vulnerable upload scan, show findings, list generated reports, and preview a guarded partial edit.
+
 ## Demo Script
 
 1. Introduce the product:
@@ -62,6 +76,8 @@ source .venv/bin/activate
    ```bash
    repoguard scan examples/vulnerable-upload-app --no-ai
    ```
+
+   GUI alternative: open `repoguard gui`, keep `examples/vulnerable-upload-app` in the repository field, and press `Run scan`.
 
 3. Point out concurrent scanner agents:
 

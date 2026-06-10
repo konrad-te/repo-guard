@@ -46,6 +46,18 @@ To run the built-in vulnerable upload demo:
 repoguard scan examples/vulnerable-upload-app --no-ai
 ```
 
+To open the local GUI:
+
+```bash
+repoguard gui
+```
+
+Then visit:
+
+```text
+http://127.0.0.1:8765
+```
+
 ## Agentic Architecture
 
 RepoGuard separates agency from execution:
