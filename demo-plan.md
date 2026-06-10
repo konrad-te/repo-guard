@@ -60,12 +60,13 @@ source .venv/bin/activate
 2. Run a scan:
 
    ```bash
-   repoguard scan <repo-url-or-local-path> --no-ai
+   repoguard scan examples/vulnerable-upload-app --no-ai
    ```
 
 3. Point out concurrent scanner agents:
 
    - filesystem-agent
+   - upload-risk-agent
    - license-agent
    - bandit
    - semgrep

@@ -6,11 +6,13 @@ from repoguard.scanners.licenses import LicenseScanner
 from repoguard.scanners.pip_audit import PipAuditScanner
 from repoguard.scanners.semgrep import SemgrepScanner
 from repoguard.scanners.trufflehog import TruffleHogScanner
+from repoguard.scanners.upload_security import UploadSecurityScanner
 
 
 def default_scanners():
     return [
         FilesystemScanner(),
+        UploadSecurityScanner(),
         LicenseScanner(),
         BanditScanner(),
         SemgrepScanner(),

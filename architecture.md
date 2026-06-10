@@ -57,6 +57,7 @@ Scanner agents are bounded sub-agents. Each agent has one responsibility and ret
 Current scanner agents:
 
 - `filesystem-agent`: checks repository inventory and risky filenames
+- `upload-risk-agent`: checks upload handlers for missing file size, file count, and file type controls
 - `license-agent`: checks for missing or restrictive top-level licenses
 - `bandit`: Python security static analysis
 - `semgrep`: multi-language static analysis

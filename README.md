@@ -5,6 +5,7 @@ RepoGuard is an agentic CLI that scans a GitHub repository before you run someon
 ## What It Checks
 
 - `filesystem-agent`: risky filenames, language/file inventory
+- `upload-risk-agent`: unsafe file upload handlers, missing upload limits/type checks
 - `license-agent`: missing or potentially restrictive top-level licenses
 - `bandit`: Python static security analysis
 - `semgrep`: multi-language SAST
@@ -38,6 +39,12 @@ repoguard scan https://github.com/org/repo --no-ai
 ```
 
 External scanner binaries are optional for local development. Missing tools are recorded as `skipped` in the report. The Docker image installs the scanner CLIs.
+
+To run the built-in vulnerable upload demo:
+
+```bash
+repoguard scan examples/vulnerable-upload-app --no-ai
+```
 
 ## Agentic Architecture
 

@@ -98,6 +98,12 @@ class PartialReportWriter:
                     "",
                     finding.description or "No scanner description provided.",
                     "",
+                ]
+            )
+            if finding.evidence:
+                lines.extend([f"Evidence: `{finding.evidence[:500]}`", ""])
+            lines.extend(
+                [
                     f"Recommendation: {finding.recommendation or 'Review before running this repository.'}",
                     "",
                 ]
