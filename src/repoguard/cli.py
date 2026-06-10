@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from repoguard.config import RepoGuardConfig
+from repoguard.editing.patcher import apply_exact_replacement
 from repoguard.models import SEVERITY_ORDER, Severity
 from repoguard.orchestrator.runner import ScanOrchestrator
 
@@ -18,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     scan = sub.add_parser("scan", help="Clone or inspect a repo and generate a security report.")
     scan.add_argument("repo", nargs="?", help="GitHub URL or local repository path.")
+    scan.add_argument("--config", type=Path, help="Path to non-secret RepoGuard TOML config file.")
     scan.add_argument("--output", type=Path, help="Report directory. Overrides REPORT_DIR.")
     scan.add_argument("--max-tokens", type=int, help="Soft context token budget.")
     scan.add_argument("--hard-token-cap", type=int, help="Hard context token cap.")
@@ -27,11 +29,18 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--fail-on", choices=[item.value for item in Severity], help="Exit 1 at or above this severity.")
     scan.add_argument("--no-ai", action="store_true", help="Disable OpenAI enrichment and use deterministic local triage.")
     scan.add_argument("--keep-workspace", action="store_true", help="Keep cloned workspace for debugging.")
+
+    patch = sub.add_parser("patch", help="Apply a guarded exact replacement inside a local repository.")
+    patch.add_argument("repo", type=Path, help="Local repository path.")
+    patch.add_argument("file", help="Relative file path inside the repository.")
+    patch.add_argument("--find", required=True, help="Exact text to replace.")
+    patch.add_argument("--replace", required=True, help="Replacement text.")
+    patch.add_argument("--yes", action="store_true", help="Write the patch. Without this flag RepoGuard performs a dry run.")
     return parser
 
 
 async def run_scan(args: argparse.Namespace) -> int:
-    config = RepoGuardConfig.from_env()
+    config = RepoGuardConfig.from_env(args.config)
     if args.output:
         config.report_dir = args.output
     if args.max_tokens:
@@ -58,7 +67,7 @@ async def run_scan(args: argparse.Namespace) -> int:
         raise SystemExit("Repo URL/path required, or set REPO_URL in .env.")
 
     print(f"RepoGuard scanning: {repo}")
-    orchestrator = ScanOrchestrator(config)
+    orchestrator = ScanOrchestrator(config, progress=lambda message: print(f"[RepoGuard] {message}"))
     report, markdown_path, json_path = await orchestrator.scan(repo, keep_workspace=args.keep_workspace)
 
     print(f"Report: {markdown_path}")
@@ -80,6 +89,12 @@ def main(argv: list[str] | None = None) -> None:
     try:
         if args.command == "scan":
             raise SystemExit(asyncio.run(run_scan(args)))
+        if args.command == "patch":
+            result = apply_exact_replacement(args.repo, args.file, args.find, args.replace, write=args.yes)
+            print(result.message)
+            if result.preview:
+                print(result.preview)
+            raise SystemExit(0 if result.changed or not args.yes else 1)
     except KeyboardInterrupt:
         raise SystemExit(130)
     except Exception as exc:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Callable
 
 from repoguard.ai.report_agent import HeuristicReportAgent, OpenAIReportAgent, ReportAgent
 from repoguard.config import RepoGuardConfig
@@ -22,9 +23,11 @@ class ScanOrchestrator:
         config: RepoGuardConfig,
         scanners: list[ScannerAgent] | None = None,
         report_agent: ReportAgent | None = None,
+        progress: Callable[[str], None] | None = None,
     ) -> None:
         self.config = config
         self.scanners = scanners or default_scanners()
+        self.progress = progress
         if report_agent:
             self.report_agent = report_agent
         elif config.ai_enabled and config.openai_api_key:
@@ -32,7 +35,12 @@ class ScanOrchestrator:
         else:
             self.report_agent = HeuristicReportAgent()
 
+    def _emit(self, message: str) -> None:
+        if self.progress:
+            self.progress(message)
+
     async def scan(self, repo: str, keep_workspace: bool = False) -> tuple[ScanReport, Path, Path]:
+        self._emit(f"Preparing workspace for {repo}")
         workspace = await prepare_workspace(
             repo,
             timeout_seconds=self.config.scanner_timeout_seconds,
@@ -54,6 +62,12 @@ class ScanOrchestrator:
         )
         report.budget = budget.snapshot()
         writer.write(report)
+        self._emit(
+            "Budget: "
+            f"{budget.used_tokens}/{budget.max_context_tokens} context tokens, "
+            f"hard cap {budget.hard_token_cap}, "
+            f"${budget.estimated_cost_usd:.4f}/${budget.budget_usd:.4f}"
+        )
 
         try:
             runner = GuardedCommandRunner(
@@ -62,6 +76,7 @@ class ScanOrchestrator:
                 max_output_bytes=self.config.max_output_bytes,
             )
             await self._run_scanners(report, writer, budget, workspace.repo_path, runner)
+            self._emit("Running final report agent")
             await self.report_agent.enrich(report, budget)
             report.status = "complete"
         except BudgetExceeded as exc:
@@ -72,6 +87,7 @@ class ScanOrchestrator:
             report.recalculate_risk()
             report.budget = budget.snapshot()
             writer.write(report)
+            self._emit(f"Scan finished with status={report.status}, risk={report.risk_level.value}")
             workspace.cleanup()
 
         return report, writer.markdown_path, writer.json_path
@@ -95,9 +111,16 @@ class ScanOrchestrator:
 
         async def run_one(scanner: ScannerAgent) -> ScannerResult:
             async with semaphore:
+                self._emit(f"Starting scanner agent: {scanner.name}")
                 try:
-                    return await scanner.scan(repo_path, runner)
+                    result = await scanner.scan(repo_path, runner)
+                    self._emit(
+                        f"Finished scanner agent: {scanner.name} "
+                        f"status={result.status.value} findings={len(result.findings)}"
+                    )
+                    return result
                 except Exception as exc:
+                    self._emit(f"Scanner agent failed: {scanner.name} error={type(exc).__name__}")
                     return ScannerResult(
                         name=scanner.name,
                         status=AgentStatus.FAILED,
@@ -119,3 +142,10 @@ class ScanOrchestrator:
             report.recalculate_risk()
             report.budget = budget.snapshot()
             writer.write(report)
+            if report.budget:
+                self._emit(
+                    f"Progress: {result.name} merged, "
+                    f"risk={report.risk_level.value}, "
+                    f"tokens={report.budget.used_tokens}/{report.budget.max_context_tokens}, "
+                    f"cost=${report.budget.estimated_cost_usd:.4f}"
+                )

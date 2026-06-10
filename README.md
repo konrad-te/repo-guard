@@ -56,6 +56,7 @@ If `OPENAI_API_KEY` is set, the final report agent asks an OpenAI model to enric
 
 ```bash
 repoguard scan <github-url-or-local-path> \
+  --config repoguard.toml \
   --output reports \
   --concurrency 5 \
   --timeout 300 \
@@ -71,3 +72,32 @@ Exit codes:
 - `1`: risk is at or above `--fail-on`
 - `2`: fatal setup/runtime error
 - `130`: interrupted
+
+RepoGuard also includes a guarded partial-edit command for targeted fixes:
+
+```bash
+repoguard patch ./my-app app/upload.py \
+  --find "MAX_FILES = None" \
+  --replace "MAX_FILES = 10"
+```
+
+The command is dry-run by default and prints a preview. Add `--yes` to write the change:
+
+```bash
+repoguard patch ./my-app app/upload.py \
+  --find "MAX_FILES = None" \
+  --replace "MAX_FILES = 10" \
+  --yes
+```
+
+Partial edits are restricted to files inside the selected repository path and ambiguous replacements are refused.
+
+## Configuration
+
+Non-secret settings can be kept in a TOML config file:
+
+```bash
+repoguard scan <repo> --config repoguard.example.toml
+```
+
+Environment variables still override config-file values. Secrets such as `OPENAI_API_KEY` should stay in `.env` or the shell environment, not in the TOML file.

@@ -1,0 +1,21 @@
+[scan]
+report_dir = "reports"
+scanner_timeout_seconds = 300
+max_output_bytes = 1048576
+max_concurrency = 5
+fail_on_severity = "high"
+
+[budget]
+max_context_tokens = 120000
+warn_token_ratio = 0.8
+hard_token_cap = 150000
+budget_usd = 1.50
+input_cost_per_1k = 0.0004
+output_cost_per_1k = 0.0016
+
+[ai]
+enabled = true
+model = "gpt-4.1-mini"
+
+# Secrets do not belong in this file.
+# Put OPENAI_API_KEY and repository-specific secrets in .env or your shell environment.
