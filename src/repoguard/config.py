@@ -95,8 +95,8 @@ class RepoGuardConfig:
     budget_usd: float
     input_cost_per_1k: float
     output_cost_per_1k: float
-    openai_api_key: str | None
-    openai_model: str
+    gemini_api_key: str | None
+    gemini_model: str
     fail_on_severity: str
     ai_enabled: bool = True
 
@@ -113,10 +113,10 @@ class RepoGuardConfig:
             warn_token_ratio=_float_setting(config, "budget", "warn_token_ratio", "WARN_TOKEN_RATIO", 0.8),
             hard_token_cap=_int_setting(config, "budget", "hard_token_cap", "HARD_TOKEN_CAP", 150_000),
             budget_usd=_float_setting(config, "budget", "budget_usd", "BUDGET_USD", 1.5),
-            input_cost_per_1k=_float_setting(config, "budget", "input_cost_per_1k", "INPUT_COST_PER_1K", 0.0004),
-            output_cost_per_1k=_float_setting(config, "budget", "output_cost_per_1k", "OUTPUT_COST_PER_1K", 0.0016),
-            openai_api_key=os.environ.get("OPENAI_API_KEY") or None,
-            openai_model=_str_setting(config, "ai", "model", "OPENAI_MODEL", "gpt-4.1-mini"),
+            input_cost_per_1k=_float_setting(config, "budget", "input_cost_per_1k", "INPUT_COST_PER_1K", 0.0),
+            output_cost_per_1k=_float_setting(config, "budget", "output_cost_per_1k", "OUTPUT_COST_PER_1K", 0.0),
+            gemini_api_key=os.environ.get("GEMINI_API_KEY") or None,
+            gemini_model=_str_setting(config, "ai", "model", "GEMINI_MODEL", "gemini-3.5-flash"),
             fail_on_severity=_str_setting(config, "scan", "fail_on_severity", "FAIL_ON_SEVERITY", "high").lower(),
             ai_enabled=_bool_setting(config, "ai", "enabled", "AI_ENABLED", True),
         )

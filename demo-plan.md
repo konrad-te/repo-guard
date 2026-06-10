@@ -20,7 +20,7 @@ The demo should prove:
 1. Clone or open the RepoGuard project.
 2. Copy `.env.example` to `.env`.
 3. Set `REPO_URL` to a test repository or local vulnerable demo project.
-4. Optionally leave `OPENAI_API_KEY` empty to show deterministic fallback.
+4. Optionally leave `GEMINI_API_KEY` empty to show deterministic fallback.
 5. Make sure Docker is available if using the Docker path.
 
 ## Demo Option A: Docker

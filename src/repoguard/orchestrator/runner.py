@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
-from repoguard.ai.report_agent import HeuristicReportAgent, OpenAIReportAgent, ReportAgent
+from repoguard.ai.report_agent import GeminiReportAgent, HeuristicReportAgent, ReportAgent
 from repoguard.config import RepoGuardConfig
 from repoguard.execution.runner import GuardedCommandRunner
 from repoguard.models import AgentStatus, ScanReport, ScannerResult
@@ -30,8 +30,8 @@ class ScanOrchestrator:
         self.progress = progress
         if report_agent:
             self.report_agent = report_agent
-        elif config.ai_enabled and config.openai_api_key:
-            self.report_agent = OpenAIReportAgent(config.openai_api_key, config.openai_model)
+        elif config.ai_enabled and config.gemini_api_key:
+            self.report_agent = GeminiReportAgent(config.gemini_api_key, config.gemini_model)
         else:
             self.report_agent = HeuristicReportAgent()
 

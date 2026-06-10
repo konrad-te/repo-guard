@@ -27,7 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--concurrency", type=int, help="Maximum scanner agents running in parallel.")
     scan.add_argument("--timeout", type=int, help="Per-scanner timeout in seconds.")
     scan.add_argument("--fail-on", choices=[item.value for item in Severity], help="Exit 1 at or above this severity.")
-    scan.add_argument("--no-ai", action="store_true", help="Disable OpenAI enrichment and use deterministic local triage.")
+    scan.add_argument("--no-ai", action="store_true", help="Disable Gemini enrichment and use deterministic local triage.")
     scan.add_argument("--keep-workspace", action="store_true", help="Keep cloned workspace for debugging.")
 
     patch = sub.add_parser("patch", help="Apply a guarded exact replacement inside a local repository.")

@@ -10,12 +10,13 @@ max_context_tokens = 120000
 warn_token_ratio = 0.8
 hard_token_cap = 150000
 budget_usd = 1.50
-input_cost_per_1k = 0.0004
-output_cost_per_1k = 0.0016
+# Gemini free-tier default. Override these if you switch to paid-tier pricing.
+input_cost_per_1k = 0
+output_cost_per_1k = 0
 
 [ai]
 enabled = true
-model = "gpt-4.1-mini"
+model = "gemini-3.5-flash"
 
 # Secrets do not belong in this file.
-# Put OPENAI_API_KEY and repository-specific secrets in .env or your shell environment.
+# Put GEMINI_API_KEY and repository-specific secrets in .env or your shell environment.

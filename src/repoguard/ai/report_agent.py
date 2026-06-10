@@ -41,14 +41,14 @@ class HeuristicReportAgent(ReportAgent):
             report.recommendations.insert(0, f"Finding distribution: {by_severity}.")
 
 
-class OpenAIReportAgent(ReportAgent):
+class GeminiReportAgent(ReportAgent):
     def __init__(self, api_key: str, model: str) -> None:
         self.api_key = api_key
         self.model = model
 
     async def enrich(self, report: ScanReport, budget: TokenBudget) -> None:
         payload = compact_json(report.to_dict(), max_chars=24_000)
-        budget.add_context("openai-report-agent-input", payload)
+        budget.add_context("gemini-report-agent-input", payload)
         prompt = (
             "You are RepoGuard's final security reporting agent. "
             "Use only scanner-backed facts. Return JSON with keys summary and recommendations. "
@@ -56,9 +56,9 @@ class OpenAIReportAgent(ReportAgent):
             f"{payload}"
         )
         try:
-            response_text = await asyncio.to_thread(self._call_openai, prompt)
+            response_text = await asyncio.to_thread(self._call_gemini, prompt)
             budget.add_model_usage(0, max(1, len(response_text) // 4))
-            data = json.loads(response_text)
+            data = json.loads(_strip_json_fence(response_text))
             if isinstance(data.get("summary"), str):
                 report.summary = data["summary"]
             if isinstance(data.get("recommendations"), list):
@@ -70,16 +70,23 @@ class OpenAIReportAgent(ReportAgent):
             await fallback.enrich(report, budget)
             report.recommendations.append(f"AI enrichment fallback used: {type(exc).__name__}.")
 
-    def _call_openai(self, prompt: str) -> str:
-        from openai import OpenAI
+    def _call_gemini(self, prompt: str) -> str:
+        from google import genai
 
-        client = OpenAI(api_key=self.api_key)
-        response = client.chat.completions.create(
+        client = genai.Client(api_key=self.api_key)
+        response = client.models.generate_content(
             model=self.model,
-            messages=[
-                {"role": "system", "content": "Return strict JSON only."},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.1,
+            contents=prompt,
         )
-        return response.choices[0].message.content or "{}"
+        return response.text or "{}"
+
+
+def _strip_json_fence(text: str) -> str:
+    stripped = text.strip()
+    if stripped.startswith("```json"):
+        stripped = stripped.removeprefix("```json").strip()
+    elif stripped.startswith("```"):
+        stripped = stripped.removeprefix("```").strip()
+    if stripped.endswith("```"):
+        stripped = stripped.removesuffix("```").strip()
+    return stripped

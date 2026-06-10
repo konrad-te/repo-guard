@@ -112,7 +112,7 @@ File: `src/repoguard/ai/report_agent.py`
 Responsibilities:
 
 - turn scanner-backed facts into summary and recommendations
-- use OpenAI enrichment when `OPENAI_API_KEY` is set
+- use Gemini enrichment when `GEMINI_API_KEY` is set
 - fall back to deterministic local triage without an API key
 - avoid unsupported claims by using only scanner-backed data
 
@@ -159,4 +159,3 @@ This satisfies the Assignment 2-style behavior at the product level: the system 
 - token and cost accounting is estimated
 - the current version focuses on review and reporting, not broad autonomous coding
 - some vulnerability types require deeper framework-specific analysis
-

@@ -50,7 +50,7 @@ RepoGuard separates agency from execution:
 - The token budget monitor warns near the configured budget and raises a hard cap before oversized context is added.
 - The report writer atomically rewrites stable report sections after each scanner completes, so partial reports remain readable.
 
-If `OPENAI_API_KEY` is set, the final report agent asks an OpenAI model to enrich the executive summary and recommendations using only scanner-backed facts. Without an API key, RepoGuard uses a deterministic local triage agent.
+If `GEMINI_API_KEY` is set, the final report agent asks Gemini to enrich the executive summary and recommendations using only scanner-backed facts. Without an API key, RepoGuard uses a deterministic local triage agent.
 
 ## CLI
 
@@ -100,4 +100,6 @@ Non-secret settings can be kept in a TOML config file:
 repoguard scan <repo> --config repoguard.example.toml
 ```
 
-Environment variables still override config-file values. Secrets such as `OPENAI_API_KEY` should stay in `.env` or the shell environment, not in the TOML file.
+Environment variables still override config-file values. Secrets such as `GEMINI_API_KEY` should stay in `.env` or the shell environment, not in the TOML file.
+
+The default example config uses Gemini free-tier cost values of `0` for input and output tokens. If you move to a paid tier, update `INPUT_COST_PER_1K` and `OUTPUT_COST_PER_1K` or the matching TOML values.

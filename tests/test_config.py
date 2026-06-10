@@ -38,7 +38,7 @@ model = "test-model"
             self.assertEqual(config.hard_token_cap, 120)
             self.assertEqual(config.budget_usd, 0.25)
             self.assertFalse(config.ai_enabled)
-            self.assertEqual(config.openai_model, "test-model")
+            self.assertEqual(config.gemini_model, "test-model")
 
     def test_environment_overrides_config_file(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -42,8 +42,8 @@ def config(tmp_path: Path) -> RepoGuardConfig:
         budget_usd=10,
         input_cost_per_1k=0.001,
         output_cost_per_1k=0.001,
-        openai_api_key=None,
-        openai_model="test",
+        gemini_api_key=None,
+        gemini_model="test",
         fail_on_severity="high",
         ai_enabled=False,
     )
