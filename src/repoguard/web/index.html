@@ -6,101 +6,288 @@
   <title>RepoGuard</title>
   <style>
     :root {
-      --ink: #151625;
-      --muted: #62677b;
-      --line: #e6e8ee;
-      --soft: #f6f7f9;
-      --blue: #1f55d8;
-      --blue-dark: #173fa4;
-      --green: #0f8f69;
-      --amber: #b7791f;
-      --red: #c73333;
-      --panel: #ffffff;
-      --code: #101828;
+      --bg: #05070b;
+      --panel: #0d1117;
+      --panel-2: #111722;
+      --ink: #f4f7fb;
+      --muted: #8b98a8;
+      --line: #222b38;
+      --line-2: #303b4c;
+      --blue: #8ecbff;
+      --green: #57e39b;
+      --amber: #ffd166;
+      --red: #ff6b6b;
+      --mono: "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 50% -20%, rgba(142, 203, 255, .12), transparent 32%),
+        linear-gradient(180deg, #05070b 0%, #080d14 100%);
       color: var(--ink);
-      background: var(--soft);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--sans);
       letter-spacing: 0;
     }
 
-    header {
-      height: 58px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
+    button, input, select {
+      font: inherit;
+      letter-spacing: 0;
     }
 
-    .nav {
-      width: min(1160px, calc(100% - 40px));
+    .wrap {
+      width: min(980px, calc(100% - 32px));
       margin: 0 auto;
+      padding: 22px 0 46px;
+    }
+
+    .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 24px;
+      gap: 16px;
+      margin-bottom: 34px;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 11px;
+      font-weight: 780;
+      font-size: 18px;
+    }
+
+    .brand svg {
+      width: 30px;
+      height: 34px;
+      flex: 0 0 auto;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 12px;
+      color: var(--green);
+      background: rgba(87, 227, 155, .07);
+      font-family: var(--mono);
+      font-size: 12px;
       font-weight: 750;
-      font-size: 20px;
     }
 
-    .mark {
-      width: 24px;
-      height: 28px;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 3px;
-      transform: rotate(-12deg);
+    .status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 12px currentColor;
     }
 
-    .mark span {
-      background: var(--ink);
-      border-radius: 4px;
-    }
-
-    .navlinks {
+    .top-actions {
       display: flex;
       align-items: center;
-      gap: 28px;
-      font-size: 13px;
-      color: var(--ink);
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .navlinks a {
-      color: inherit;
+    .nav-link {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 12px;
+      color: var(--ink);
+      background: rgba(244, 247, 251, .04);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 750;
       text-decoration: none;
     }
 
-    .navlinks a::after {
-      content: " +";
+    .hero {
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 14px 0 0;
+      color: var(--muted);
+      max-width: 680px;
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(13, 17, 23, .94);
+      box-shadow: 0 26px 90px rgba(0, 0, 0, .38);
+      overflow: hidden;
+    }
+
+    .card-head {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-2);
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .dots {
+      display: inline-flex;
+      gap: 6px;
+    }
+
+    .dots span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--line-2);
+    }
+
+    .dots span:nth-child(1) { background: var(--red); }
+    .dots span:nth-child(2) { background: var(--amber); }
+    .dots span:nth-child(3) { background: var(--green); }
+
+    .help {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--line-2);
+      border-radius: 8px;
+      background: transparent;
       color: var(--blue);
-      font-weight: 600;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .help.small {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+
+    .card-body {
+      padding: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 150px 130px;
+      gap: 12px;
+      align-items: end;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .label-title,
+    .metric-label,
+    .output-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    input, select {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--line-2);
+      border-radius: 10px;
+      background: #070a0f;
+      color: var(--ink);
+      padding: 0 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid rgba(142, 203, 255, .22);
+      border-color: var(--blue);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 13px;
+    }
+
+    .inline-status {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .inline-status.running {
+      color: var(--blue);
+    }
+
+    .inline-status.complete {
+      color: var(--green);
+    }
+
+    .inline-status.error {
+      color: var(--red);
     }
 
     .button {
-      border: 1px solid var(--blue);
-      background: var(--blue);
-      color: white;
-      border-radius: 999px;
-      height: 36px;
-      padding: 0 18px;
-      font-weight: 700;
+      min-height: 38px;
+      border: 1px solid var(--line-2);
+      border-radius: 10px;
+      background: #151b25;
+      color: var(--ink);
+      padding: 0 14px;
+      font-weight: 800;
       cursor: pointer;
-      white-space: nowrap;
     }
 
-    .button.secondary {
-      background: white;
-      color: var(--blue);
+    .button.primary {
+      background: var(--ink);
+      color: #05070b;
+      border-color: var(--ink);
     }
 
     .button:disabled {
@@ -108,357 +295,420 @@
       cursor: progress;
     }
 
-    main {
-      background: var(--panel);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .hero {
-      width: min(1160px, calc(100% - 40px));
-      margin: 0 auto;
-      min-height: 520px;
-      display: grid;
-      grid-template-columns: .95fr 1.05fr;
-      align-items: center;
-      gap: 54px;
-      padding: 72px 0 58px;
-    }
-
-    h1 {
-      font-size: clamp(44px, 6vw, 72px);
-      line-height: .98;
-      margin: 0 0 24px;
-      letter-spacing: 0;
-    }
-
-    .lead {
-      color: #252a3c;
-      font-size: 15px;
-      line-height: 1.8;
-      max-width: 620px;
-      margin: 0 0 26px;
-    }
-
-    .actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-
-    .mini-stats {
+    .metrics {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      max-width: 520px;
+      gap: 12px;
+      margin-top: 18px;
     }
 
-    .mini-stat {
-      border-top: 1px solid var(--line);
-      padding-top: 14px;
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #080c12;
+      padding: 13px;
     }
 
-    .mini-stat strong {
+    .metric span {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .metric strong {
       display: block;
-      font-size: 22px;
-      margin-bottom: 4px;
+      margin-top: 9px;
+      font-family: var(--mono);
+      font-size: 25px;
+      line-height: 1;
     }
 
-    .mini-stat span {
-      color: var(--muted);
-      font-size: 12px;
-    }
+    .metric.risk strong { color: var(--amber); }
+    .metric.findings strong { color: var(--blue); }
+    .metric.tokens strong { color: var(--green); }
 
-    .console {
+    .agents-panel {
       border: 1px solid var(--line);
-      background: #fbfcff;
-      box-shadow: 0 22px 60px rgba(20, 27, 50, .09);
-      border-radius: 8px;
-      overflow: hidden;
+      border-radius: 12px;
+      background: #080c12;
+      padding: 13px;
+      margin-top: 14px;
     }
 
-    .console-top {
-      height: 44px;
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .agent-card {
+      min-height: 118px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #0b1018;
+      padding: 11px;
+    }
+
+    .agent-top {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      padding: 0 16px;
-      border-bottom: 1px solid var(--line);
-      background: white;
-      font-size: 13px;
-      font-weight: 700;
+      gap: 10px;
+      margin-bottom: 8px;
     }
 
-    .status-pill {
-      border-radius: 999px;
-      background: #eaf0ff;
-      color: var(--blue);
-      padding: 5px 10px;
-      font-size: 12px;
-    }
-
-    .scan-form {
-      padding: 18px;
-      display: grid;
-      gap: 12px;
-    }
-
-    label {
-      display: grid;
-      gap: 7px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    input, select {
-      width: 100%;
-      height: 42px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 0 12px;
+    .agent-name {
       color: var(--ink);
-      background: white;
-      font: inherit;
-      font-size: 14px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 150px;
-      gap: 12px;
-    }
-
-    .terminal {
-      min-height: 168px;
-      max-height: 220px;
-      overflow: auto;
-      background: var(--code);
-      color: #e9edf7;
-      padding: 14px;
-      font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+      font-family: var(--mono);
       font-size: 12px;
-      line-height: 1.55;
-      white-space: pre-wrap;
+      font-weight: 900;
+      overflow-wrap: anywhere;
     }
 
-    .verified {
-      width: min(720px, calc(100% - 40px));
-      margin: -32px auto 58px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 36px;
-      color: var(--muted);
-      font-size: 13px;
+    .agent-kind {
+      flex: 0 0 auto;
+      border: 1px solid rgba(142, 203, 255, .28);
+      border-radius: 999px;
+      color: var(--blue);
+      background: rgba(142, 203, 255, .07);
+      padding: 3px 7px;
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
     }
 
-    .badge {
-      font-weight: 850;
-      font-size: 27px;
-    }
-
-    .badge.red { color: var(--red); }
-    .badge.blue { color: var(--blue); }
-    .badge.green { color: var(--green); }
-
-    .workspace {
-      width: min(1160px, calc(100% - 40px));
-      margin: 0 auto;
-      padding: 54px 0 70px;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 22px;
-    }
-
-    h2 {
+    .agent-card p {
       margin: 0;
-      font-size: 30px;
-      line-height: 1.15;
+      color: #c9d3df;
+      line-height: 1.5;
+      font-size: 12px;
     }
 
-    .section-head p {
-      margin: 8px 0 0;
+    .report-brief {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #080c12;
+      padding: 13px;
+      margin-top: 14px;
+    }
+
+    .report-brief p {
+      margin: 0;
+      color: #d7e2ee;
+      line-height: 1.55;
+    }
+
+    .recommendations {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: #c9d3df;
+      line-height: 1.55;
+    }
+
+    .recommendations li {
+      margin: 6px 0;
+    }
+
+    .outputs {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, .8fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .output-panel {
+      min-width: 0;
+    }
+
+    .output-title {
       color: var(--muted);
-      max-width: 640px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 7px;
+    }
+
+    .console,
+    .findings {
+      min-height: 340px;
+      max-height: 480px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #05070b;
+      padding: 13px;
+      font-family: var(--mono);
+      font-size: 12px;
       line-height: 1.6;
     }
 
-    .grid {
+    .console {
+      white-space: pre-wrap;
+      color: #e7f1fb;
+    }
+
+    .findings {
       display: grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 18px;
-      align-items: start;
+      align-content: start;
+      gap: 10px;
     }
 
-    .panel {
-      background: white;
+    .finding,
+    .empty {
       border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
+      border-radius: 10px;
+      background: #0b1018;
+      padding: 11px;
     }
 
-    .panel h3 {
-      margin: 0;
-      padding: 16px 18px;
-      border-bottom: 1px solid var(--line);
-      font-size: 15px;
-    }
-
-    .report-list, .finding-list, .patch-box {
-      padding: 16px;
-      display: grid;
-      gap: 12px;
-    }
-
-    .report-row, .finding {
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 13px;
-      background: #fff;
-    }
-
-    .report-row {
-      cursor: pointer;
-    }
-
-    .report-row:hover {
-      border-color: #c8d4ff;
+    .empty {
+      color: var(--muted);
+      border-style: dashed;
     }
 
     .row-top {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 10px;
       margin-bottom: 7px;
     }
 
     .row-title {
-      font-weight: 800;
+      color: var(--ink);
+      font-weight: 850;
       overflow-wrap: anywhere;
     }
 
-    .risk {
-      font-size: 11px;
-      font-weight: 850;
-      border-radius: 999px;
-      padding: 4px 8px;
-      text-transform: uppercase;
-      color: white;
-      background: var(--green);
-    }
-
-    .risk.high, .risk.critical { background: var(--red); }
-    .risk.medium { background: var(--amber); }
-    .risk.low { background: var(--blue); }
-
     .meta {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1.5;
+      overflow-wrap: anywhere;
     }
 
     .finding p {
-      margin: 9px 0 0;
-      color: #34394d;
-      line-height: 1.55;
-      font-size: 13px;
+      margin: 8px 0 0;
+      color: #c9d3df;
+      line-height: 1.5;
     }
 
-    .codebox {
-      background: var(--code);
-      color: #f5f7fb;
-      border-radius: 6px;
-      padding: 12px;
-      font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-      font-size: 12px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-      overflow: auto;
-      max-height: 260px;
+    .fix-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
     }
 
-    .patch-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+    .fix-button {
+      min-height: 30px;
+      border: 1px solid var(--line-2);
+      border-radius: 8px;
+      background: rgba(142, 203, 255, .09);
+      color: var(--blue);
+      padding: 0 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 900;
+      cursor: pointer;
     }
 
-    .empty {
+    .fix-button.apply {
+      background: rgba(87, 227, 155, .1);
+      color: var(--green);
+    }
+
+    .fix-note {
+      width: 100%;
+      border: 1px dashed var(--line-2);
+      border-radius: 8px;
       color: var(--muted);
-      font-size: 13px;
-      padding: 12px;
-      border: 1px dashed #d7dbe7;
-      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .risk-pill {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      border: 1px solid rgba(87, 227, 155, .42);
+      color: var(--green);
+      background: rgba(87, 227, 155, .08);
+    }
+
+    .risk-pill.low {
+      color: var(--blue);
+      border-color: rgba(142, 203, 255, .42);
+      background: rgba(142, 203, 255, .08);
+    }
+
+    .risk-pill.medium {
+      color: var(--amber);
+      border-color: rgba(255, 209, 102, .42);
+      background: rgba(255, 209, 102, .08);
+    }
+
+    .risk-pill.high,
+    .risk-pill.critical {
+      color: var(--red);
+      border-color: rgba(255, 107, 107, .42);
+      background: rgba(255, 107, 107, .08);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, .72);
+      z-index: 50;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(560px, 100%);
+      border: 1px solid var(--line-2);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: 0 30px 120px rgba(0, 0, 0, .58);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-2);
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 14px;
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line-2);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .modal-body {
+      padding: 16px;
+      color: #d0dae6;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .modal-body p {
+      margin: 0 0 12px;
+    }
+
+    .modal-body ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+
+    .modal-body li {
+      margin: 6px 0;
     }
 
     @media (max-width: 860px) {
-      .hero, .grid {
+      .grid,
+      .metrics,
+      .outputs {
         grid-template-columns: 1fr;
       }
+    }
 
-      .hero {
-        padding-top: 44px;
+    @media (max-width: 640px) {
+      .wrap {
+        width: min(100% - 24px, 980px);
       }
 
-      .navlinks {
-        display: none;
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
       }
 
-      .form-grid, .patch-grid, .mini-stats {
-        grid-template-columns: 1fr;
+      .top-actions {
+        width: 100%;
+        justify-content: flex-start;
       }
 
-      .verified {
-        margin-top: 20px;
-        flex-wrap: wrap;
+      .button {
+        width: 100%;
+      }
+
+      .inline-status {
+        width: 100%;
       }
     }
   </style>
 </head>
 <body>
-  <header>
-    <nav class="nav">
-      <div class="brand"><span class="mark"><span></span><span></span><span></span><span></span></span>RepoGuard</div>
-      <div class="navlinks">
-        <a href="#scan">Scan</a>
-        <a href="#reports">Reports</a>
-        <a href="#patch">Patch</a>
-        <button class="button secondary" id="refreshBtn">Refresh</button>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 48 54" role="img" aria-label="RepoGuard shield logo">
+          <defs>
+            <linearGradient id="shieldGradient" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#ffffff" />
+              <stop offset="100%" stop-color="#8ecbff" />
+            </linearGradient>
+          </defs>
+          <path d="M24 3 42 10v15c0 13-7.7 21.7-18 26C13.7 46.7 6 38 6 25V10L24 3Z" fill="url(#shieldGradient)" />
+          <path d="M18 27.5 22.2 32 31 21" fill="none" stroke="#05070b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span>RepoGuard</span>
       </div>
-    </nav>
-  </header>
+      <div class="top-actions">
+        <a class="nav-link" href="/reports.html">Reports</a>
+        <span class="status" id="statusPill">ready</span>
+      </div>
+    </header>
 
-  <main id="scan">
     <section class="hero">
-      <div>
-        <h1>Security review.<br />Before shipping.</h1>
-        <p class="lead">Run parallel scanner agents against a repository, inspect evidence-backed findings, track budget usage, and preview targeted fixes from one clean interface.</p>
-        <div class="actions">
-          <button class="button" id="sampleBtn">Use demo app</button>
-          <a class="button secondary" href="#reports">View reports</a>
-        </div>
-        <div class="mini-stats">
-          <div class="mini-stat"><strong id="riskStat">-</strong><span>Current risk</span></div>
-          <div class="mini-stat"><strong id="findingStat">0</strong><span>Findings</span></div>
-          <div class="mini-stat"><strong id="tokenStat">0</strong><span>Tokens used</span></div>
-        </div>
-      </div>
+      <h1>Security scan</h1>
+      <p>Enter a GitHub repo URL or local project path. RepoGuard runs focused scanner agents and returns evidence-backed findings.</p>
+    </section>
 
-      <div class="console">
-        <div class="console-top"><span>Scan Console</span><span class="status-pill" id="statusPill">Ready</span></div>
-        <form class="scan-form" id="scanForm">
-          <label>Repository URL or local path
-            <input id="repoInput" value="examples/vulnerable-upload-app" />
-          </label>
-          <div class="form-grid">
-            <label>Fail threshold
+    <main class="card">
+      <div class="card-head">
+        <div class="title"><span class="dots"><span></span><span></span><span></span></span> repoguard.scan</div>
+        <button class="help" data-info="scan" aria-label="Explain security scan" type="button">i</button>
+      </div>
+      <div class="card-body">
+        <form id="scanForm">
+          <div class="grid">
+            <label>target
+              <span class="label-title"><span>repo url or local path</span><button class="help small" data-info="target" aria-label="Explain target input" type="button">i</button></span>
+              <input id="repoInput" value="examples/vulnerable-upload-app" />
+            </label>
+            <label>fail-on
+              <span class="label-title"><span>severity threshold</span><button class="help small" data-info="failOn" aria-label="Explain fail-on" type="button">i</button></span>
               <select id="failOn">
                 <option value="critical">critical</option>
                 <option value="high">high</option>
@@ -466,89 +716,193 @@
                 <option value="low">low</option>
               </select>
             </label>
-            <label>AI enrichment
+            <label>ai
+              <span class="label-title"><span>report enrichment</span><button class="help small" data-info="ai" aria-label="Explain AI mode" type="button">i</button></span>
               <select id="aiMode">
-                <option value="no-ai">off</option>
                 <option value="ai">Gemini</option>
+                <option value="no-ai">off</option>
               </select>
             </label>
           </div>
-          <button class="button" type="submit" id="scanBtn">Run scan</button>
-        </form>
-        <div class="terminal" id="events">RepoGuard ready.
-Try scanning examples/vulnerable-upload-app.</div>
-      </div>
-    </section>
-
-    <div class="verified">
-      <span>Scanner agents:</span>
-      <strong class="badge red">Upload</strong>
-      <strong class="badge blue">SAST</strong>
-      <strong class="badge green">Secrets</strong>
-    </div>
-  </main>
-
-  <section class="workspace">
-    <div class="section-head">
-      <div>
-        <h2>Reports and targeted fixes</h2>
-        <p>Review generated findings, then use the guarded patch preview for small exact edits. Writes stay off unless you explicitly apply them from the CLI.</p>
-      </div>
-    </div>
-
-    <div class="grid" id="reports">
-      <div class="panel">
-        <h3>Recent reports</h3>
-        <div class="report-list" id="reportList"><div class="empty">No reports loaded yet.</div></div>
-      </div>
-
-      <div class="panel">
-        <h3>Findings</h3>
-        <div class="finding-list" id="findingList"><div class="empty">Select or run a report to see findings.</div></div>
-      </div>
-    </div>
-
-    <div class="grid" id="patch" style="margin-top: 18px;">
-      <div class="panel">
-        <h3>Patch preview</h3>
-        <div class="patch-box">
-          <div class="patch-grid">
-            <label>Repo path
-              <input id="patchRepo" value="examples/vulnerable-upload-app" />
-            </label>
-            <label>File
-              <input id="patchFile" value="app.py" />
-            </label>
+          <div class="actions">
+            <button class="button primary" type="submit" id="scanBtn">Run scan</button>
+            <button class="button" id="sampleBtn" type="button">Use demo</button>
+            <button class="button" id="clearBtn" type="button">Clear</button>
+            <span class="inline-status" id="actionStatus">ready</span>
           </div>
-          <label>Find
-            <input id="patchFind" value="for file in files:" />
-          </label>
-          <label>Replace
-            <input id="patchReplace" value="for file in files[:10]:" />
-          </label>
-          <button class="button secondary" id="patchBtn">Preview patch</button>
-          <div class="codebox" id="patchPreview">Patch preview will appear here.</div>
-        </div>
-      </div>
+        </form>
 
-      <div class="panel">
-        <h3>Selected report JSON</h3>
-        <div class="patch-box">
-          <div class="codebox" id="jsonBox">No report selected.</div>
+        <div class="metrics">
+          <div class="metric risk"><span class="metric-label">risk <button class="help small" data-info="risk" aria-label="Explain risk metric" type="button">i</button></span><strong id="riskStat">-</strong></div>
+          <div class="metric findings"><span class="metric-label">findings <button class="help small" data-info="findingCount" aria-label="Explain findings metric" type="button">i</button></span><strong id="findingStat">0</strong></div>
+          <div class="metric tokens"><span class="metric-label">context tokens <button class="help small" data-info="tokens" aria-label="Explain token metric" type="button">i</button></span><strong id="tokenStat">0</strong></div>
+        </div>
+
+        <div class="agents-panel">
+          <div class="output-title">scanner agents <button class="help small" data-info="agents" aria-label="Explain scanner agents" type="button">i</button></div>
+          <div class="agent-grid" id="agentGrid">
+            <div class="empty">Loading scanner agents...</div>
+          </div>
+        </div>
+
+        <div class="report-brief">
+          <div class="output-title">final report <button class="help small" data-info="summary" aria-label="Explain final report" type="button">i</button></div>
+          <p id="summaryText">Run a scan to see the final summary.</p>
+          <ul class="recommendations" id="recommendationList"></ul>
+        </div>
+
+        <div class="outputs">
+          <div class="output-panel">
+            <div class="output-title">live output <button class="help small" data-info="liveOutput" aria-label="Explain live output" type="button">i</button></div>
+            <div class="console" id="events">RepoGuard ready.
+Try scanning examples/vulnerable-upload-app.</div>
+          </div>
+          <div class="output-panel">
+            <div class="output-title">findings <button class="help small" data-info="findings" aria-label="Explain findings list" type="button">i</button></div>
+            <div class="findings" id="findingList"><div class="empty">Run a scan to see findings.</div></div>
+          </div>
         </div>
       </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="infoTitle">Security scan</h2>
+        <button class="modal-close" id="infoClose" type="button" aria-label="Close info window">&times;</button>
+      </div>
+      <div class="modal-body" id="infoBody"></div>
     </div>
-  </section>
+  </div>
 
   <script>
     const $ = (id) => document.getElementById(id);
+    let currentRepo = '';
+    let currentFindings = [];
+
+    const infoContent = {
+      scan: {
+        title: 'Security scan',
+        body: `
+          <p>The security scan is the core RepoGuard feature.</p>
+          <ul>
+            <li>It accepts a GitHub repository URL or a local project path.</li>
+            <li>It starts multiple scanner agents and merges their results.</li>
+            <li>It compresses large tool outputs and tracks token usage.</li>
+            <li>It returns evidence-backed findings with recommendations.</li>
+          </ul>
+        `
+      },
+      target: {
+        title: 'Target',
+        body: `
+          <p>The target is what RepoGuard scans.</p>
+          <ul>
+            <li>Use a GitHub URL to clone and scan a remote repository.</li>
+            <li>Use a local path to scan a folder already on your machine.</li>
+            <li>The demo target is <strong>examples/vulnerable-upload-app</strong>.</li>
+          </ul>
+        `
+      },
+      failOn: {
+        title: 'Fail-on',
+        body: `
+          <p>Fail-on controls when RepoGuard treats the scan as failed.</p>
+          <ul>
+            <li><strong>critical</strong>: only critical issues fail the scan.</li>
+            <li><strong>high</strong>: high or critical issues fail the scan.</li>
+            <li><strong>medium</strong>: medium, high, or critical issues fail the scan.</li>
+            <li><strong>low</strong>: any finding can fail the scan.</li>
+          </ul>
+        `
+      },
+      ai: {
+        title: 'AI mode',
+        body: `
+          <p>AI mode controls optional report enrichment.</p>
+          <ul>
+            <li><strong>off</strong> uses deterministic local reporting and is best for demos.</li>
+            <li><strong>Gemini</strong> can enrich the final summary when GEMINI_API_KEY is configured.</li>
+            <li>The scanners still run without Gemini.</li>
+          </ul>
+        `
+      },
+      risk: {
+        title: 'Risk',
+        body: `
+          <p>Risk is the highest severity found in the current scan.</p>
+          <p>If one scanner reports a high issue, the whole scan result is high until that issue is reviewed or fixed.</p>
+        `
+      },
+      findingCount: {
+        title: 'Findings count',
+        body: `
+          <p>This number shows how many normalized findings RepoGuard collected from scanner agents.</p>
+          <p>Each finding can include severity, scanner name, file location, evidence, and recommendation.</p>
+        `
+      },
+      tokens: {
+        title: 'Context tokens',
+        body: `
+          <p>These are estimated context tokens, not proof that an AI API was called.</p>
+          <p>RepoGuard counts scanner output and report context even when Gemini is off or unavailable, so it can warn or stop before the configured hard cap is exceeded.</p>
+        `
+      },
+      summary: {
+        title: 'Final report',
+        body: `
+          <p>The final report is where AI enrichment makes a visible difference.</p>
+          <ul>
+            <li>With a working Gemini key and client package, Gemini rewrites the summary and recommendations using scanner-backed facts.</li>
+            <li>If Gemini fails, RepoGuard falls back to the deterministic local report agent and says so in live output/recommendations.</li>
+            <li>The findings themselves usually stay the same because scanner agents detect the issues.</li>
+          </ul>
+        `
+      },
+      liveOutput: {
+        title: 'Live output',
+        body: `
+          <p>Live output shows what the orchestrator is doing.</p>
+          <ul>
+            <li>which scanner agents start and finish</li>
+            <li>how findings are merged</li>
+            <li>current risk, token usage, and report paths</li>
+          </ul>
+        `
+      },
+      findings: {
+        title: 'Findings',
+        body: `
+          <p>Findings are the security issues RepoGuard normalized from scanner results.</p>
+          <p>The most useful findings include evidence from the code and a concrete recommendation.</p>
+        `
+      },
+      agents: {
+        title: 'Scanner agents',
+        body: `
+          <p>RepoGuard runs several focused scanner agents instead of one large general-purpose scan.</p>
+          <ul>
+            <li>Built-in scanners inspect repository structure, upload code, and license state.</li>
+            <li>External tool wrappers run tools like Bandit, Semgrep, TruffleHog, and pip-audit when installed.</li>
+            <li>The orchestrator runs these agents, merges their findings, and sends scanner-backed facts to the final report agent.</li>
+          </ul>
+        `
+      }
+    };
 
     function riskClass(risk) {
-      return `risk ${String(risk || 'info').toLowerCase()}`;
+      return `risk-pill ${String(risk || 'info').toLowerCase()}`;
     }
 
     function setEvents(lines) {
       $('events').textContent = Array.isArray(lines) ? lines.join('\n') : String(lines || '');
+    }
+
+    function setActionStatus(message, state = '') {
+      const el = $('actionStatus');
+      el.textContent = message;
+      el.className = `inline-status ${state}`.trim();
     }
 
     function setStats(report) {
@@ -558,52 +912,77 @@ Try scanning examples/vulnerable-upload-app.</div>
       $('tokenStat').textContent = report?.budget?.used_tokens || 0;
     }
 
+    function setReportBrief(report) {
+      $('summaryText').textContent = report?.summary || 'Run a scan to see the final summary.';
+      const list = $('recommendationList');
+      list.innerHTML = '';
+      const recommendations = report?.recommendations || [];
+      recommendations.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        list.appendChild(li);
+      });
+    }
+
+    function resetOutput() {
+      $('statusPill').textContent = 'ready';
+      setActionStatus('ready');
+      setStats(null);
+      setReportBrief(null);
+      setEvents('RepoGuard ready.\nTry scanning examples/vulnerable-upload-app.');
+      $('findingList').innerHTML = '<div class="empty">Run a scan to see findings.</div>';
+    }
+
     async function request(path, options = {}) {
       const res = await fetch(path, {
         headers: { 'Content-Type': 'application/json' },
         ...options
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Request failed');
+      if (!res.ok) {
+        const error = new Error(data.error || 'Request failed');
+        error.data = data;
+        throw error;
+      }
       return data;
     }
 
-    async function loadReports() {
-      const data = await request('/api/reports');
-      const list = $('reportList');
-      list.innerHTML = '';
-      if (!data.reports.length) {
-        list.innerHTML = '<div class="empty">No reports yet. Run a scan first.</div>';
+    async function loadAgents() {
+      try {
+        const data = await request('/api/agents');
+        renderAgents(data.agents || []);
+      } catch (error) {
+        $('agentGrid').innerHTML = '<div class="empty">Could not load scanner agents.</div>';
+      }
+    }
+
+    function renderAgents(agents) {
+      const grid = $('agentGrid');
+      grid.innerHTML = '';
+      if (!agents.length) {
+        grid.innerHTML = '<div class="empty">No scanner agents configured.</div>';
         return;
       }
-      data.reports.forEach((report) => {
-        const row = document.createElement('div');
-        row.className = 'report-row';
-        row.innerHTML = `
-          <div class="row-top">
-            <div class="row-title">${escapeHtml(report.repo)}</div>
-            <span class="${riskClass(report.risk_level)}">${escapeHtml(report.risk_level)}</span>
+      agents.forEach((agent) => {
+        const card = document.createElement('div');
+        card.className = 'agent-card';
+        card.innerHTML = `
+          <div class="agent-top">
+            <div class="agent-name">${escapeHtml(agent.name)}</div>
+            <span class="agent-kind">${escapeHtml(agent.kind)}</span>
           </div>
-          <div class="meta">${report.findings_count} findings · ${escapeHtml(report.status)}<br>${escapeHtml(report.path)}</div>
+          <p>${escapeHtml(agent.description)}</p>
         `;
-        row.onclick = () => openReport(report.path);
-        list.appendChild(row);
+        grid.appendChild(card);
       });
     }
 
-    async function openReport(path) {
-      const data = await request(`/api/report?path=${encodeURIComponent(path)}`);
-      const report = data.report;
-      setStats(report);
-      $('jsonBox').textContent = JSON.stringify(report, null, 2);
-      renderFindings(report.findings || []);
-    }
-
     function renderFindings(findings) {
+      currentFindings = findings;
       const list = $('findingList');
       list.innerHTML = '';
       if (!findings.length) {
-        list.innerHTML = '<div class="empty">No normalized findings in this report.</div>';
+        list.innerHTML = '<div class="empty">No normalized findings in this scan.</div>';
         return;
       }
       findings.forEach((finding) => {
@@ -614,20 +993,43 @@ Try scanning examples/vulnerable-upload-app.</div>
             <div class="row-title">${escapeHtml(finding.title)}</div>
             <span class="${riskClass(finding.severity)}">${escapeHtml(finding.severity)}</span>
           </div>
-          <div class="meta">${escapeHtml(finding.scanner)} · ${escapeHtml(finding.file || 'unknown')}${finding.line ? ':' + finding.line : ''}</div>
+          <div class="meta">${escapeHtml(finding.scanner)} - ${escapeHtml(finding.file || 'unknown')}${finding.line ? ':' + finding.line : ''}</div>
           <p>${escapeHtml(finding.description || '')}</p>
           ${finding.evidence ? `<p><strong>Evidence:</strong> <code>${escapeHtml(finding.evidence)}</code></p>` : ''}
           <p><strong>Recommendation:</strong> ${escapeHtml(finding.recommendation || 'Review before running this repository.')}</p>
+          ${canAutoFix(finding) ? `
+            <div class="fix-actions">
+              ${isRemoteRepo(currentRepo) ? `
+                <div class="fix-note">Fix available, but this scan target is a GitHub URL. Clone the repo locally, scan that local folder, then apply the fix.</div>
+              ` : `
+                <button class="fix-button" type="button" data-fix-preview="${currentFindings.indexOf(finding)}">Preview fix</button>
+                <button class="fix-button apply" type="button" data-fix-apply="${currentFindings.indexOf(finding)}">Apply fix</button>
+              `}
+            </div>
+          ` : ''}
         `;
         list.appendChild(row);
       });
     }
 
+    function canAutoFix(finding) {
+      return finding?.rule_id?.startsWith('upload.') && finding.file;
+    }
+
+    function isRemoteRepo(value) {
+      const target = String(value || '').trim().toLowerCase();
+      return target.startsWith('http://') || target.startsWith('https://') || target.startsWith('git@');
+    }
+
     $('scanForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       $('scanBtn').disabled = true;
-      $('statusPill').textContent = 'Running';
-      setEvents('Starting scan...');
+      $('scanBtn').textContent = 'Scanning...';
+      $('statusPill').textContent = 'running';
+      setActionStatus('scanning repository...', 'running');
+      setEvents('starting scan...');
+      renderFindings([]);
+      currentRepo = $('repoInput').value.trim();
       try {
         const data = await request('/api/scan', {
           method: 'POST',
@@ -638,47 +1040,81 @@ Try scanning examples/vulnerable-upload-app.</div>
           })
         });
         setStats(data.report);
+        setReportBrief(data.report);
         setEvents(data.events.concat([`Report: ${data.markdown_path}`, `JSON: ${data.json_path}`]));
         renderFindings(data.report.findings || []);
-        $('jsonBox').textContent = JSON.stringify(data.report, null, 2);
-        $('statusPill').textContent = 'Complete';
-        await loadReports();
+        $('statusPill').textContent = 'complete';
+        setActionStatus('scan complete', 'complete');
       } catch (error) {
-        $('statusPill').textContent = 'Error';
-        setEvents(error.message);
+        $('statusPill').textContent = 'error';
+        setActionStatus('scan failed', 'error');
+        const lines = error.data?.events?.length ? error.data.events.concat([error.message]) : error.message;
+        setEvents(lines);
       } finally {
         $('scanBtn').disabled = false;
-      }
-    });
-
-    $('patchBtn').addEventListener('click', async () => {
-      $('patchPreview').textContent = 'Creating preview...';
-      try {
-        const data = await request('/api/patch', {
-          method: 'POST',
-          body: JSON.stringify({
-            repo: $('patchRepo').value,
-            file: $('patchFile').value,
-            find: $('patchFind').value,
-            replace: $('patchReplace').value,
-            write: false
-          })
-        });
-        $('patchPreview').textContent = `${data.message}\n${data.preview || ''}`;
-      } catch (error) {
-        $('patchPreview').textContent = error.message;
+        $('scanBtn').textContent = 'Run scan';
       }
     });
 
     $('sampleBtn').addEventListener('click', () => {
       $('repoInput').value = 'examples/vulnerable-upload-app';
-      $('patchRepo').value = 'examples/vulnerable-upload-app';
-      $('patchFile').value = 'app.py';
-      $('patchFind').value = 'for file in files:';
-      $('patchReplace').value = 'for file in files[:10]:';
     });
 
-    $('refreshBtn').addEventListener('click', loadReports);
+    $('clearBtn').addEventListener('click', resetOutput);
+
+    $('findingList').addEventListener('click', async (event) => {
+      const previewIndex = event.target.dataset.fixPreview;
+      const applyIndex = event.target.dataset.fixApply;
+      if (previewIndex === undefined && applyIndex === undefined) return;
+      const write = applyIndex !== undefined;
+      const finding = currentFindings[Number(write ? applyIndex : previewIndex)];
+      if (!finding) return;
+      if (write && !confirm('Apply this fix to the local repository file?')) return;
+      try {
+        $('statusPill').textContent = write ? 'applying fix' : 'previewing fix';
+        setActionStatus(write ? 'applying fix...' : 'previewing fix...', 'running');
+        const result = await request('/api/fix', {
+          method: 'POST',
+          body: JSON.stringify({
+            repo: currentRepo || $('repoInput').value.trim(),
+            file: finding.file,
+            rule_id: finding.rule_id,
+            write
+          })
+        });
+        const header = `${result.title}: ${result.message}`;
+        setEvents(result.preview ? [header, '', result.preview] : header);
+        $('statusPill').textContent = write && result.changed ? 'fix applied' : 'fix preview';
+        setActionStatus(write && result.changed ? 'fix applied' : 'fix preview ready', 'complete');
+      } catch (error) {
+        $('statusPill').textContent = 'fix error';
+        setActionStatus('fix failed', 'error');
+        setEvents(error.message);
+      }
+    });
+
+    document.querySelectorAll('[data-info]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const item = infoContent[button.dataset.info];
+        if (!item) return;
+        $('infoTitle').textContent = item.title;
+        $('infoBody').innerHTML = item.body;
+        $('infoModal').classList.add('open');
+        $('infoClose').focus();
+      });
+    });
+
+    $('infoClose').addEventListener('click', closeInfo);
+    $('infoModal').addEventListener('click', (event) => {
+      if (event.target === $('infoModal')) closeInfo();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeInfo();
+    });
+
+    function closeInfo() {
+      $('infoModal').classList.remove('open');
+    }
 
     function escapeHtml(value) {
       return String(value ?? '')
@@ -689,7 +1125,7 @@ Try scanning examples/vulnerable-upload-app.</div>
         .replaceAll("'", '&#039;');
     }
 
-    loadReports().catch((error) => setEvents(error.message));
+    loadAgents();
   </script>
 </body>
 </html>

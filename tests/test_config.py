@@ -2,6 +2,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from repoguard.config import RepoGuardConfig
 
@@ -29,7 +30,8 @@ model = "test-model"
                 encoding="utf-8",
             )
 
-            config = RepoGuardConfig.from_env(path)
+            with patch("repoguard.config.load_dotenv"):
+                config = RepoGuardConfig.from_env(path)
 
             self.assertEqual(config.report_dir, Path("custom-reports"))
             self.assertEqual(config.max_concurrency, 2)
@@ -53,7 +55,8 @@ max_concurrency = 2
             previous = os.environ.get("MAX_CONCURRENCY")
             os.environ["MAX_CONCURRENCY"] = "9"
             try:
-                config = RepoGuardConfig.from_env(path)
+                with patch("repoguard.config.load_dotenv"):
+                    config = RepoGuardConfig.from_env(path)
             finally:
                 if previous is None:
                     os.environ.pop("MAX_CONCURRENCY", None)

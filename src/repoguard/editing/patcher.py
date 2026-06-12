@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import difflib
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -51,28 +52,12 @@ def apply_exact_replacement(
 
 
 def _build_preview(before: str, after: str, context_lines: int = 3) -> str:
-    before_lines = before.splitlines()
-    after_lines = after.splitlines()
-    first_changed = 0
-    max_len = max(len(before_lines), len(after_lines))
-    for index in range(max_len):
-        left = before_lines[index] if index < len(before_lines) else None
-        right = after_lines[index] if index < len(after_lines) else None
-        if left != right:
-            first_changed = index
-            break
-    start = max(0, first_changed - context_lines)
-    end = min(max_len, first_changed + context_lines + 4)
-    preview_lines = ["[partial edit preview]"]
-    for index in range(start, end):
-        left = before_lines[index] if index < len(before_lines) else None
-        right = after_lines[index] if index < len(after_lines) else None
-        line_no = index + 1
-        if left == right and left is not None:
-            preview_lines.append(f" {line_no}: {left}")
-        else:
-            if left is not None:
-                preview_lines.append(f"-{line_no}: {left}")
-            if right is not None:
-                preview_lines.append(f"+{line_no}: {right}")
-    return "\n".join(preview_lines)
+    diff = difflib.unified_diff(
+        before.splitlines(),
+        after.splitlines(),
+        fromfile="before",
+        tofile="after",
+        lineterm="",
+        n=context_lines,
+    )
+    return "\n".join(["[partial edit preview]", *diff])

@@ -58,13 +58,19 @@ Then visit:
 http://127.0.0.1:8765
 ```
 
+The GUI includes a scan page and a reports history page:
+
+```text
+http://127.0.0.1:8765/reports.html
+```
+
 ## Agentic Architecture
 
 RepoGuard separates agency from execution:
 
 - The orchestrator schedules independent scanner agents concurrently.
 - Each scanner agent has one bounded responsibility and normalizes findings into a shared schema.
-- The guarded command runner only allows scanner binaries and `git clone`, blocks shell metacharacters, uses `create_subprocess_exec`, bounds output, and applies timeouts.
+- The guarded command runner only allows scanner binaries and safe Git commands, blocks shell metacharacters, runs commands without a shell, bounds output, and applies timeouts.
 - Raw scanner output is compressed and redacted before it can be used by the report agent.
 - The token budget monitor warns near the configured budget and raises a hard cap before oversized context is added.
 - The report writer atomically rewrites stable report sections after each scanner completes, so partial reports remain readable.
@@ -110,6 +116,28 @@ repoguard patch examples/vulnerable-upload-app app.py \
 ```
 
 Partial edits are restricted to files inside the selected repository path and ambiguous replacements are refused.
+
+## Guarded Auto-Fixes
+
+The GUI can preview and apply a safe auto-fix for supported findings. The first supported fixes target Flask and FastAPI upload handlers that read uploaded files without count, size, or file-type checks.
+
+Auto-fixes are intentionally guarded:
+
+- they only work on local repository paths, not temporary GitHub URL scans
+- they show a preview before writing
+- they require explicit user approval
+- they refuse unknown patterns instead of guessing
+
+For a GitHub repository URL, RepoGuard can scan and report findings, but it cannot write fixes back to the remote repository. Clone it locally first, scan the local folder in the GUI, then use the finding's **Preview fix** and **Apply fix** buttons.
+
+Example:
+
+```bash
+git clone https://github.com/org/repo
+repoguard gui
+```
+
+Then scan the local folder path instead of the GitHub URL.
 
 ## Configuration
 

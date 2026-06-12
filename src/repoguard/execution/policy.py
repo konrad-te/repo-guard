@@ -20,7 +20,7 @@ class ExecutionPolicy:
             "pip-licenses",
         }
     )
-    allowed_git_subcommands: set[str] = field(default_factory=lambda: {"clone"})
+    allowed_git_subcommands: set[str] = field(default_factory=lambda: {"clone", "ls-files"})
 
     def validate(self, command: list[str], cwd: Path, workspace_root: Path) -> None:
         if not command:
@@ -39,7 +39,7 @@ class ExecutionPolicy:
             raise PermissionError(f"Working directory escapes workspace: {resolved_cwd}")
         if binary == "git":
             if len(command) < 2 or command[1] not in self.allowed_git_subcommands:
-                raise PermissionError("Only 'git clone' is allowed.")
+                raise PermissionError("Only safe read/clone git subcommands are allowed.")
             if "--upload-pack" in command:
                 raise PermissionError("git --upload-pack is blocked.")
 

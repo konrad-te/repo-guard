@@ -8,8 +8,10 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from repoguard.config import RepoGuardConfig
+from repoguard.editing.fixes import suggest_or_apply_upload_fix
 from repoguard.editing.patcher import apply_exact_replacement
 from repoguard.orchestrator.runner import ScanOrchestrator
+from repoguard.scanners.registry import default_scanners
 
 
 WEB_ROOT = Path(__file__).parent / "web"
@@ -33,6 +35,9 @@ class RepoGuardGuiHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/reports":
             self._json({"reports": self._list_reports()})
             return
+        if parsed.path == "/api/agents":
+            self._json({"agents": self._list_agents()})
+            return
         if parsed.path == "/api/report":
             self._get_report(parsed.query)
             return
@@ -45,6 +50,9 @@ class RepoGuardGuiHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/patch":
             self._patch()
+            return
+        if parsed.path == "/api/fix":
+            self._fix()
             return
         self._json({"error": "Unknown endpoint"}, status=404)
 
@@ -118,6 +126,47 @@ class RepoGuardGuiHandler(BaseHTTPRequestHandler):
         except Exception as exc:
             self._json({"error": f"{type(exc).__name__}: {exc}"}, status=400)
 
+    def _fix(self) -> None:
+        payload = self._read_json()
+        repo = str(payload.get("repo", "")).strip()
+        relative_file = str(payload.get("file", "")).strip()
+        rule_id = str(payload.get("rule_id", "")).strip()
+        if not repo or not relative_file:
+            self._json({"error": "repo and file are required"}, status=400)
+            return
+        if repo.startswith(("http://", "https://", "git@")):
+            self._json(
+                {
+                    "error": (
+                        "Auto-fixes require a local repository path. Clone the repo locally, scan that folder, "
+                        "then apply fixes."
+                    )
+                },
+                status=400,
+            )
+            return
+        if not rule_id.startswith("upload."):
+            self._json({"error": "No safe auto-fix is available for this finding yet."}, status=400)
+            return
+        try:
+            result = suggest_or_apply_upload_fix(
+                Path(repo),
+                relative_file,
+                write=bool(payload.get("write", False)),
+            )
+            self._json(
+                {
+                    "changed": result.changed,
+                    "fixable": result.fixable,
+                    "title": result.title,
+                    "message": result.message,
+                    "file": str(result.file),
+                    "preview": result.preview,
+                }
+            )
+        except Exception as exc:
+            self._json({"error": f"{type(exc).__name__}: {exc}"}, status=400)
+
     def _get_report(self, query: str) -> None:
         values = parse_qs(query)
         relative = values.get("path", [""])[0]
@@ -160,6 +209,17 @@ class RepoGuardGuiHandler(BaseHTTPRequestHandler):
             )
         reports.sort(key=lambda item: item.get("finished_at") or item.get("started_at") or "", reverse=True)
         return reports
+
+    def _list_agents(self) -> list[dict]:
+        external = {"bandit", "semgrep", "trufflehog", "pip-audit"}
+        return [
+            {
+                "name": scanner.name,
+                "description": scanner.description,
+                "kind": "external tool wrapper" if scanner.name in external else "built-in scanner",
+            }
+            for scanner in default_scanners()
+        ]
 
     def _safe_report_path(self, relative: str) -> Path:
         root = self.server.report_dir.resolve()

@@ -27,6 +27,9 @@ IGNORED_DIRS = {
     ".mypy_cache",
     ".ruff_cache",
     ".venv",
+    "venv",
+    "env",
+    ".env",
     "node_modules",
     "dist",
     "build",
@@ -48,7 +51,9 @@ UPLOAD_MARKERS = (
 
 SIZE_LIMIT_MARKERS = (
     "max_content_length",
+    "max_bytes",
     "max_file_size",
+    "max_upload_bytes",
     "file_size_limit",
     "content_length",
     "content-length",
@@ -60,7 +65,9 @@ SIZE_LIMIT_MARKERS = (
 
 COUNT_LIMIT_MARKERS = (
     "max_files",
+    "maxfiles",
     "max_file_count",
+    "max_upload_files",
     "array(",
     "maxcount",
     "max_count",

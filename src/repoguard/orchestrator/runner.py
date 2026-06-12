@@ -76,8 +76,11 @@ class ScanOrchestrator:
                 max_output_bytes=self.config.max_output_bytes,
             )
             await self._run_scanners(report, writer, budget, workspace.repo_path, runner)
-            self._emit("Running final report agent")
+            agent_name = type(self.report_agent).__name__
+            self._emit(f"Running final report agent: {agent_name}")
             await self.report_agent.enrich(report, budget)
+            if any("AI enrichment fallback used" in item for item in report.recommendations):
+                self._emit("AI enrichment fallback used; final report came from local heuristic agent")
             report.status = "complete"
         except BudgetExceeded as exc:
             report.status = "partial-budget-capped"

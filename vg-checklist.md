@@ -67,11 +67,13 @@ RepoGuard allowlists scanner binaries, blocks shell metacharacters, restricts `g
 
 ## 7. Bash Command Execution
 
-Status: partially fulfilled.
+Status: mostly fulfilled.
 
 RepoGuard executes external command-line scanner tools through a guarded subprocess runner. It does not expose arbitrary bash to the user.
 
 This is safer for the product because RepoGuard should scan untrusted repositories without running their scripts.
+
+This is the most arguable requirement because RepoGuard intentionally allows only safe scanner commands instead of arbitrary user-provided shell.
 
 ## 8. Partial File Editing
 
@@ -140,5 +142,5 @@ The architecture is explainable at a high level without reading every line of Py
 
 ## Remaining Priority Work
 
-1. Prepare a tiny vulnerable demo repository or sample project.
-2. Optionally connect report findings to suggested patch templates.
+1. Prepare final screenshots and a short demo recording/script.
+2. Optionally add more auto-fix templates beyond upload-handler fixes.
