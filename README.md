@@ -18,8 +18,31 @@ The scanner agents use guarded subprocess execution. RepoGuard does not run proj
 
 ```bash
 cp .env.example .env
-# edit REPO_URL in .env
-docker compose up --build
+docker compose build
+```
+
+Run the built-in vulnerable upload demo from Docker:
+
+```bash
+docker compose run --rm repoguard
+```
+
+To scan a specific repository instead:
+
+```bash
+docker compose run --rm repoguard scan https://github.com/org/repo --no-ai
+```
+
+To run the GUI from Docker:
+
+```bash
+docker compose up -d gui
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8765
 ```
 
 Reports are written to:
@@ -119,7 +142,13 @@ Partial edits are restricted to files inside the selected repository path and am
 
 ## Guarded Auto-Fixes
 
-The GUI can preview and apply a safe auto-fix for supported findings. The first supported fixes target Flask and FastAPI upload handlers that read uploaded files without count, size, or file-type checks.
+The GUI can preview and apply safe guided edits for supported findings. The guarded editor panel shows the target file, safety steps, and unified diff before anything is written.
+
+Current supported edit types:
+
+- Flask and FastAPI upload handlers that read uploaded files without count, size, or file-type checks
+- vulnerable Python dependencies in `requirements*.txt` when `pip-audit` reports a fixed version
+- missing top-level license findings, handled by creating `LICENSE_REVIEW.md` as a review reminder instead of inventing legal terms
 
 Auto-fixes are intentionally guarded:
 

@@ -338,25 +338,24 @@
 
     .agent-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
       margin-top: 10px;
     }
 
     .agent-card {
-      min-height: 118px;
+      position: relative;
+      min-height: 72px;
       border: 1px solid var(--line);
-      border-radius: 10px;
+      border-radius: 8px;
       background: #0b1018;
-      padding: 11px;
+      padding: 12px;
+      cursor: help;
     }
 
     .agent-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 8px;
+      display: grid;
+      gap: 9px;
     }
 
     .agent-name {
@@ -364,11 +363,14 @@
       font-family: var(--mono);
       font-size: 12px;
       font-weight: 900;
-      overflow-wrap: anywhere;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .agent-kind {
-      flex: 0 0 auto;
+      width: fit-content;
+      max-width: 100%;
       border: 1px solid rgba(142, 203, 255, .28);
       border-radius: 999px;
       color: var(--blue);
@@ -376,15 +378,58 @@
       padding: 3px 7px;
       font-family: var(--mono);
       font-size: 9px;
+      line-height: 1.2;
       font-weight: 900;
       text-transform: uppercase;
+      white-space: nowrap;
     }
 
-    .agent-card p {
-      margin: 0;
-      color: #c9d3df;
+    .agent-tooltip {
+      position: absolute;
+      left: 0;
+      top: calc(100% + 8px);
+      z-index: 20;
+      width: min(360px, calc(100vw - 48px));
+      display: none;
+      border: 1px solid var(--line-2);
+      border-radius: 10px;
+      background: #0d1117;
+      box-shadow: 0 22px 70px rgba(0, 0, 0, .48);
+      padding: 12px;
+    }
+
+    .agent-card:hover .agent-tooltip,
+    .agent-card:focus-within .agent-tooltip,
+    .agent-card:focus .agent-tooltip {
+      display: block;
+    }
+
+    .agent-tooltip p {
+      margin: 0 0 9px;
+      color: #d7e2ee;
       line-height: 1.5;
       font-size: 12px;
+    }
+
+    .agent-tooltip .agent-detail {
+      display: grid;
+      gap: 7px;
+      color: #c9d3df;
+      line-height: 1.45;
+      font-size: 12px;
+    }
+
+    .agent-tooltip .agent-detail div {
+      border-top: 1px solid rgba(48, 59, 76, .7);
+      padding-top: 7px;
+    }
+
+    .agent-tooltip .agent-detail strong {
+      color: var(--blue);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
     }
 
     .report-brief {
@@ -393,6 +438,70 @@
       background: #080c12;
       padding: 13px;
       margin-top: 14px;
+    }
+
+    .editor-panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #080c12;
+      padding: 13px;
+      margin-top: 14px;
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .edit-meta {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .edit-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #0b1018;
+      padding: 11px;
+    }
+
+    .edit-card strong {
+      display: block;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 12px;
+      margin-bottom: 6px;
+      overflow-wrap: anywhere;
+    }
+
+    .edit-card span,
+    .edit-card li {
+      color: #c9d3df;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .edit-steps {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .diff-console {
+      min-height: 230px;
+      max-height: 420px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #05070b;
+      padding: 13px;
+      color: #e7f1fb;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
     }
 
     .report-brief p {
@@ -638,6 +747,7 @@
     @media (max-width: 860px) {
       .grid,
       .metrics,
+      .editor-grid,
       .outputs {
         grid-template-columns: 1fr;
       }
@@ -749,6 +859,31 @@
           <div class="output-title">final report <button class="help small" data-info="summary" aria-label="Explain final report" type="button">i</button></div>
           <p id="summaryText">Run a scan to see the final summary.</p>
           <ul class="recommendations" id="recommendationList"></ul>
+        </div>
+
+        <div class="editor-panel">
+          <div class="output-title">guarded editor <button class="help small" data-info="editor" aria-label="Explain guarded editor" type="button">i</button></div>
+          <div class="editor-grid">
+            <div class="edit-meta">
+              <div class="edit-card">
+                <strong id="editTitle">No edit selected</strong>
+                <span id="editMessage">Run a local scan, then use Preview fix on a supported finding.</span>
+              </div>
+              <div class="edit-card">
+                <strong>target file</strong>
+                <span id="editFile">-</span>
+              </div>
+              <div class="edit-card">
+                <strong>safety steps</strong>
+                <ol class="edit-steps" id="editSteps">
+                  <li>Resolve the target inside the selected repository.</li>
+                  <li>Generate a diff before writing.</li>
+                  <li>Write only after explicit Apply fix approval.</li>
+                </ol>
+              </div>
+            </div>
+            <div class="diff-console" id="editPreview">Preview diffs appear here.</div>
+          </div>
         </div>
 
         <div class="outputs">
@@ -888,6 +1023,18 @@ Try scanning examples/vulnerable-upload-app.</div>
             <li>The orchestrator runs these agents, merges their findings, and sends scanner-backed facts to the final report agent.</li>
           </ul>
         `
+      },
+      editor: {
+        title: 'Guarded editor',
+        body: `
+          <p>The guarded editor shows how RepoGuard changes files.</p>
+          <ul>
+            <li><strong>Preview fix</strong> generates a unified diff without writing.</li>
+            <li><strong>Apply fix</strong> writes only after you approve the selected finding.</li>
+            <li>Supported edits include upload guards, requirements.txt dependency updates, and license review notes.</li>
+            <li>RepoGuard refuses edits when the file is outside the repo or the pattern is ambiguous.</li>
+          </ul>
+        `
       }
     };
 
@@ -924,11 +1071,30 @@ Try scanning examples/vulnerable-upload-app.</div>
       });
     }
 
+    function setEditor(result = null) {
+      $('editTitle').textContent = result?.title || 'No edit selected';
+      $('editMessage').textContent = result?.message || 'Run a local scan, then use Preview fix on a supported finding.';
+      $('editFile').textContent = result?.file || '-';
+      $('editPreview').textContent = result?.preview || 'Preview diffs appear here.';
+      const steps = result?.steps?.length ? result.steps : [
+        'Resolve the target inside the selected repository.',
+        'Generate a diff before writing.',
+        'Write only after explicit Apply fix approval.'
+      ];
+      $('editSteps').innerHTML = '';
+      steps.forEach((step) => {
+        const li = document.createElement('li');
+        li.textContent = step;
+        $('editSteps').appendChild(li);
+      });
+    }
+
     function resetOutput() {
       $('statusPill').textContent = 'ready';
       setActionStatus('ready');
       setStats(null);
       setReportBrief(null);
+      setEditor(null);
       setEvents('RepoGuard ready.\nTry scanning examples/vulnerable-upload-app.');
       $('findingList').innerHTML = '<div class="empty">Run a scan to see findings.</div>';
     }
@@ -966,12 +1132,20 @@ Try scanning examples/vulnerable-upload-app.</div>
       agents.forEach((agent) => {
         const card = document.createElement('div');
         card.className = 'agent-card';
+        card.tabIndex = 0;
         card.innerHTML = `
           <div class="agent-top">
             <div class="agent-name">${escapeHtml(agent.name)}</div>
             <span class="agent-kind">${escapeHtml(agent.kind)}</span>
           </div>
-          <p>${escapeHtml(agent.description)}</p>
+          <div class="agent-tooltip" role="tooltip">
+            <p>${escapeHtml(agent.plain || agent.description)}</p>
+            <div class="agent-detail">
+              <div><strong>Looks for</strong><br>${escapeHtml(agent.looks_for)}</div>
+              <div><strong>Why it matters</strong><br>${escapeHtml(agent.why)}</div>
+              <div><strong>Example</strong><br>${escapeHtml(agent.example)}</div>
+            </div>
+          </div>
         `;
         grid.appendChild(card);
       });
@@ -1013,7 +1187,10 @@ Try scanning examples/vulnerable-upload-app.</div>
     }
 
     function canAutoFix(finding) {
-      return finding?.rule_id?.startsWith('upload.') && finding.file;
+      if (finding?.rule_id?.startsWith('upload.') && finding.file) return true;
+      if (finding?.scanner === 'pip-audit' && finding.file && finding.recommendation?.startsWith('Upgrade ')) return true;
+      if (finding?.scanner === 'license-agent' && finding.title?.toLowerCase().includes('no top-level license')) return true;
+      return false;
     }
 
     function isRemoteRepo(value) {
@@ -1028,6 +1205,13 @@ Try scanning examples/vulnerable-upload-app.</div>
       $('statusPill').textContent = 'running';
       setActionStatus('scanning repository...', 'running');
       setEvents('starting scan...');
+      setEditor({
+        title: 'Waiting for findings',
+        message: 'RepoGuard will show supported edits here after the scan finishes.',
+        file: '-',
+        preview: 'No edit selected yet.',
+        steps: ['Run scanner agents.', 'Normalize findings.', 'Enable guarded edits for supported findings.']
+      });
       renderFindings([]);
       currentRepo = $('repoInput').value.trim();
       try {
@@ -1073,22 +1257,40 @@ Try scanning examples/vulnerable-upload-app.</div>
       try {
         $('statusPill').textContent = write ? 'applying fix' : 'previewing fix';
         setActionStatus(write ? 'applying fix...' : 'previewing fix...', 'running');
+        setEditor({
+          title: write ? 'Applying guarded edit' : 'Preparing edit preview',
+          message: finding.title,
+          file: finding.file || 'repository root',
+          preview: 'RepoGuard is resolving the target and generating a diff...',
+          steps: ['Read selected finding.', 'Resolve target inside repository.', 'Generate guarded edit.']
+        });
         const result = await request('/api/fix', {
           method: 'POST',
           body: JSON.stringify({
             repo: currentRepo || $('repoInput').value.trim(),
             file: finding.file,
             rule_id: finding.rule_id,
+            scanner: finding.scanner,
+            title: finding.title,
+            recommendation: finding.recommendation,
             write
           })
         });
         const header = `${result.title}: ${result.message}`;
-        setEvents(result.preview ? [header, '', result.preview] : header);
+        setEditor(result);
+        setEvents([header, `Edited file: ${result.file}`, 'See the guarded editor panel for the diff and safety steps.']);
         $('statusPill').textContent = write && result.changed ? 'fix applied' : 'fix preview';
         setActionStatus(write && result.changed ? 'fix applied' : 'fix preview ready', 'complete');
       } catch (error) {
         $('statusPill').textContent = 'fix error';
         setActionStatus('fix failed', 'error');
+        setEditor({
+          title: 'Edit refused',
+          message: error.message,
+          file: finding.file || 'repository root',
+          preview: 'No file was changed.',
+          steps: ['Read selected finding.', 'Stopped because the edit was not safe or not supported.']
+        });
         setEvents(error.message);
       }
     });

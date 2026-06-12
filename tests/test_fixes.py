@@ -2,7 +2,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from repoguard.editing.fixes import suggest_or_apply_upload_fix
+from repoguard.editing.fixes import (
+    suggest_or_apply_dependency_fix,
+    suggest_or_apply_license_review_note,
+    suggest_or_apply_upload_fix,
+)
 
 
 VULNERABLE_APP = '''from flask import Flask, request
@@ -147,6 +151,65 @@ class FixSuggestionTests(unittest.TestCase):
 
             with self.assertRaises(PermissionError):
                 suggest_or_apply_upload_fix(root, "../outside.py")
+
+    def test_dependency_fix_preview_does_not_write(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            target = root / "requirements.txt"
+            target.write_text("Flask==0.12\nrequests==2.32.0\n", encoding="utf-8")
+
+            result = suggest_or_apply_dependency_fix(
+                root,
+                "requirements.txt",
+                "flask PYSEC-2023-62",
+                "Upgrade flask to: 2.2.5, 2.3.2.",
+            )
+
+            self.assertTrue(result.fixable)
+            self.assertFalse(result.changed)
+            self.assertIn("flask==2.3.2", result.preview)
+            self.assertIn("Flask==0.12", target.read_text(encoding="utf-8"))
+
+    def test_dependency_fix_write_updates_one_requirement(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            target = root / "requirements.txt"
+            target.write_text("Flask==0.12\nrequests==2.32.0\n", encoding="utf-8")
+
+            result = suggest_or_apply_dependency_fix(
+                root,
+                "requirements.txt",
+                "flask CVE-2026-27205",
+                "Upgrade flask to: 3.1.3.",
+                write=True,
+            )
+
+            self.assertTrue(result.changed)
+            updated = target.read_text(encoding="utf-8")
+            self.assertIn("flask==3.1.3", updated)
+            self.assertIn("requests==2.32.0", updated)
+
+    def test_license_review_note_preview_does_not_write(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+
+            result = suggest_or_apply_license_review_note(root)
+
+            self.assertTrue(result.fixable)
+            self.assertFalse(result.changed)
+            self.assertEqual(result.file.name, "LICENSE_REVIEW.md")
+            self.assertIn("License Review Needed", result.preview)
+            self.assertFalse((root / "LICENSE_REVIEW.md").exists())
+
+    def test_license_review_note_write_creates_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+
+            result = suggest_or_apply_license_review_note(root, write=True)
+
+            self.assertTrue(result.changed)
+            self.assertTrue((root / "LICENSE_REVIEW.md").exists())
+            self.assertIn("not a legal license", (root / "LICENSE_REVIEW.md").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

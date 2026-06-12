@@ -8,13 +8,63 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from repoguard.config import RepoGuardConfig
-from repoguard.editing.fixes import suggest_or_apply_upload_fix
+from repoguard.editing.fixes import (
+    suggest_or_apply_dependency_fix,
+    suggest_or_apply_license_review_note,
+    suggest_or_apply_upload_fix,
+)
 from repoguard.editing.patcher import apply_exact_replacement
 from repoguard.orchestrator.runner import ScanOrchestrator
 from repoguard.scanners.registry import default_scanners
 
 
 WEB_ROOT = Path(__file__).parent / "web"
+
+
+AGENT_DETAILS = {
+    "filesystem-agent": {
+        "plain": "Checks the repository layout for risky local files and gives RepoGuard a quick map of what languages/files exist.",
+        "looks_for": "Files such as .env, private keys, credentials files, and unusual project structure.",
+        "why": "These files can contain secrets or local-only configuration that should not be shared or trusted blindly.",
+        "example": "Potentially sensitive local file present: .env",
+    },
+    "upload-risk-agent": {
+        "plain": "Reviews upload-related code for missing safety checks before files are read, stored, or sent to a database.",
+        "looks_for": "Missing file count limits, file size limits, extension/MIME allowlists, and risky storage of uploaded data.",
+        "why": "Unsafe upload handlers can let users crash storage, fill a database, or upload unexpected file types.",
+        "example": "Upload handler has no obvious file type validation.",
+    },
+    "license-agent": {
+        "plain": "Checks whether the repository has license information and flags dependencies with license review risk.",
+        "looks_for": "Missing LICENSE files and dependency license data when available.",
+        "why": "A repo without a clear license may be risky to copy, redistribute, or use in a commercial project.",
+        "example": "Repository has no top-level license file.",
+    },
+    "bandit": {
+        "plain": "Runs Bandit, a Python security scanner, when it is installed.",
+        "looks_for": "Common insecure Python patterns such as hardcoded passwords, unsafe subprocess usage, weak crypto, and risky deserialization.",
+        "why": "It catches code-level Python security issues that simple filename or upload checks can miss.",
+        "example": "Bandit rule finding in a Python file.",
+    },
+    "semgrep": {
+        "plain": "Runs Semgrep, a multi-language static analysis scanner, when it is installed.",
+        "looks_for": "Known insecure code patterns across frameworks and languages using Semgrep rules.",
+        "why": "It can detect framework-specific mistakes, insecure APIs, and risky patterns across larger codebases.",
+        "example": "Semgrep rule matched a risky code pattern.",
+    },
+    "trufflehog": {
+        "plain": "Searches the repository for leaked secrets.",
+        "looks_for": "API keys, tokens, passwords, private keys, and other credential-like strings.",
+        "why": "If a secret is in code, logs, or config files, attackers may be able to use it even if the app code is otherwise safe.",
+        "example": "Possible leaked API key or token found in a file.",
+    },
+    "pip-audit": {
+        "plain": "Checks Python dependencies for known published vulnerabilities when requirements files exist.",
+        "looks_for": "Vulnerable package versions listed in requirements*.txt.",
+        "why": "Your own code may look safe while an installed dependency has a known CVE or security advisory.",
+        "example": "Package has a known vulnerability and should be upgraded.",
+    },
+}
 
 
 class RepoGuardGuiServer(ThreadingHTTPServer):
@@ -131,8 +181,11 @@ class RepoGuardGuiHandler(BaseHTTPRequestHandler):
         repo = str(payload.get("repo", "")).strip()
         relative_file = str(payload.get("file", "")).strip()
         rule_id = str(payload.get("rule_id", "")).strip()
-        if not repo or not relative_file:
-            self._json({"error": "repo and file are required"}, status=400)
+        scanner = str(payload.get("scanner", "")).strip()
+        title = str(payload.get("title", "")).strip()
+        recommendation = str(payload.get("recommendation", "")).strip()
+        if not repo:
+            self._json({"error": "repo is required"}, status=400)
             return
         if repo.startswith(("http://", "https://", "git@")):
             self._json(
@@ -145,15 +198,35 @@ class RepoGuardGuiHandler(BaseHTTPRequestHandler):
                 status=400,
             )
             return
-        if not rule_id.startswith("upload."):
-            self._json({"error": "No safe auto-fix is available for this finding yet."}, status=400)
+        if rule_id.startswith("upload.") and not relative_file:
+            self._json({"error": "file is required for upload fixes"}, status=400)
             return
         try:
-            result = suggest_or_apply_upload_fix(
-                Path(repo),
-                relative_file,
-                write=bool(payload.get("write", False)),
-            )
+            if rule_id.startswith("upload."):
+                result = suggest_or_apply_upload_fix(
+                    Path(repo),
+                    relative_file,
+                    write=bool(payload.get("write", False)),
+                )
+            elif scanner == "pip-audit" or recommendation.lower().startswith("upgrade "):
+                if not relative_file:
+                    self._json({"error": "file is required for dependency fixes"}, status=400)
+                    return
+                result = suggest_or_apply_dependency_fix(
+                    Path(repo),
+                    relative_file,
+                    title,
+                    recommendation,
+                    write=bool(payload.get("write", False)),
+                )
+            elif scanner == "license-agent" and "no top-level license" in title.lower():
+                result = suggest_or_apply_license_review_note(
+                    Path(repo),
+                    write=bool(payload.get("write", False)),
+                )
+            else:
+                self._json({"error": "No safe auto-fix is available for this finding yet."}, status=400)
+                return
             self._json(
                 {
                     "changed": result.changed,
@@ -162,6 +235,7 @@ class RepoGuardGuiHandler(BaseHTTPRequestHandler):
                     "message": result.message,
                     "file": str(result.file),
                     "preview": result.preview,
+                    "steps": list(result.steps),
                 }
             )
         except Exception as exc:
@@ -212,14 +286,21 @@ class RepoGuardGuiHandler(BaseHTTPRequestHandler):
 
     def _list_agents(self) -> list[dict]:
         external = {"bandit", "semgrep", "trufflehog", "pip-audit"}
-        return [
-            {
-                "name": scanner.name,
-                "description": scanner.description,
-                "kind": "external tool wrapper" if scanner.name in external else "built-in scanner",
-            }
-            for scanner in default_scanners()
-        ]
+        agents = []
+        for scanner in default_scanners():
+            details = AGENT_DETAILS.get(scanner.name, {})
+            agents.append(
+                {
+                    "name": scanner.name,
+                    "description": scanner.description,
+                    "plain": details.get("plain", scanner.description),
+                    "looks_for": details.get("looks_for", "Scanner-specific repository risks."),
+                    "why": details.get("why", "Helps RepoGuard decide whether the repository is safe to run or modify."),
+                    "example": details.get("example", "Scanner-backed finding."),
+                    "kind": "external tool" if scanner.name in external else "built-in",
+                }
+            )
+        return agents
 
     def _safe_report_path(self, relative: str) -> Path:
         root = self.server.report_dir.resolve()

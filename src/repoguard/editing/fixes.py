@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -50,6 +51,21 @@ class FixResult:
     title: str
     message: str
     preview: str = ""
+    steps: tuple[str, ...] = ()
+
+
+LICENSE_REVIEW_NOTE = """# License Review Needed
+
+RepoGuard did not find a top-level LICENSE file in this repository.
+
+Before copying, redistributing, or using this project commercially:
+
+- confirm the intended license with the maintainer or project owner
+- add the chosen license text to a top-level LICENSE file
+- document any dependency license obligations
+
+This file is a review note, not a legal license.
+"""
 
 
 def suggest_or_apply_upload_fix(repo_root: Path, relative_file: str, write: bool = False) -> FixResult:
@@ -65,6 +81,7 @@ def suggest_or_apply_upload_fix(repo_root: Path, relative_file: str, write: bool
             fixable=False,
             title="No safe auto-fix available",
             message="RepoGuard currently has upload auto-fixes for known Python Flask and FastAPI handlers only.",
+            steps=("Checked finding type.", "Refused because the target is not a Python source file."),
         )
 
     original = target.read_text(encoding="utf-8")
@@ -81,9 +98,20 @@ def suggest_or_apply_upload_fix(repo_root: Path, relative_file: str, write: bool
                 "RepoGuard could not match a known unsafe Flask or FastAPI upload pattern in this file. "
                 "Use the recommendation as a manual patch guide."
             ),
+            steps=(
+                "Resolved the file inside the selected repository.",
+                "Checked for supported Flask and FastAPI upload patterns.",
+                "Refused to edit because no known safe pattern matched.",
+            ),
         )
 
     preview = _build_preview(original, updated, context_lines=5)
+    steps = (
+        "Resolved the target file inside the selected repository.",
+        "Matched a supported Python upload-handler pattern.",
+        "Inserted explicit count, size, and file-type guards.",
+        "Generated a unified diff preview before writing.",
+    )
     if write:
         target.write_text(updated, encoding="utf-8")
         return FixResult(
@@ -93,6 +121,7 @@ def suggest_or_apply_upload_fix(repo_root: Path, relative_file: str, write: bool
             title="Upload guard applied",
             message="Added upload count, size, and extension checks.",
             preview=preview,
+            steps=steps + ("Wrote the approved change to disk.",),
         )
     return FixResult(
         target,
@@ -101,6 +130,152 @@ def suggest_or_apply_upload_fix(repo_root: Path, relative_file: str, write: bool
         title="Upload guard preview",
         message="Preview only. Apply the fix to write this guarded upload handler.",
         preview=preview,
+        steps=steps + ("Stopped before writing because this was a preview.",),
+    )
+
+
+def suggest_or_apply_dependency_fix(
+    repo_root: Path,
+    relative_file: str,
+    title: str,
+    recommendation: str,
+    write: bool = False,
+) -> FixResult:
+    target = _resolve_inside(repo_root, relative_file)
+    if not target.exists():
+        raise FileNotFoundError(f"Fix target not found: {relative_file}")
+    if not target.is_file():
+        raise IsADirectoryError(f"Fix target is not a file: {relative_file}")
+    if not target.name.lower().startswith("requirements") or target.suffix.lower() != ".txt":
+        return FixResult(
+            target,
+            changed=False,
+            fixable=False,
+            title="No safe dependency fix available",
+            message="Dependency auto-fixes currently support requirements*.txt files only.",
+            steps=("Checked finding type.", "Refused because the target is not a requirements*.txt file."),
+        )
+
+    package_name = _package_from_finding(title, recommendation)
+    target_version = _version_from_recommendation(recommendation)
+    if not package_name or not target_version:
+        return FixResult(
+            target,
+            changed=False,
+            fixable=False,
+            title="No safe dependency fix available",
+            message="RepoGuard could not identify a package name and fixed version from this finding.",
+            steps=("Read the finding recommendation.", "Refused because the package/version was ambiguous."),
+        )
+
+    original = target.read_text(encoding="utf-8")
+    updated = _patch_requirement(original, package_name, target_version)
+    if updated == original:
+        return FixResult(
+            target,
+            changed=False,
+            fixable=False,
+            title="No safe dependency fix available",
+            message=f"RepoGuard could not find one clear requirement line for {package_name}.",
+            steps=(
+                "Resolved the requirements file inside the selected repository.",
+                f"Looked for exactly one editable {package_name} requirement.",
+                "Refused to edit because the match was missing or ambiguous.",
+            ),
+        )
+
+    preview = _build_preview(original, updated, context_lines=4)
+    steps = (
+        "Resolved the requirements file inside the selected repository.",
+        f"Parsed the scanner recommendation for {package_name} -> {target_version}.",
+        "Replaced one matching dependency line with a pinned safe version.",
+        "Generated a unified diff preview before writing.",
+    )
+    if write:
+        target.write_text(updated, encoding="utf-8")
+        return FixResult(
+            target,
+            changed=True,
+            fixable=True,
+            title="Dependency update applied",
+            message=f"Updated {package_name} to {target_version}.",
+            preview=preview,
+            steps=steps + ("Wrote the approved change to disk.",),
+        )
+    return FixResult(
+        target,
+        changed=False,
+        fixable=True,
+        title="Dependency update preview",
+        message=f"Preview only. Apply the fix to update {package_name} to {target_version}.",
+        preview=preview,
+        steps=steps + ("Stopped before writing because this was a preview.",),
+    )
+
+
+def suggest_or_apply_license_review_note(repo_root: Path, write: bool = False) -> FixResult:
+    root = repo_root.resolve()
+    if not root.exists() or not root.is_dir():
+        raise NotADirectoryError(f"Repository root not found: {repo_root}")
+    for child in root.iterdir():
+        if child.is_file() and child.name.lower().startswith("license"):
+            return FixResult(
+                child,
+                changed=False,
+                fixable=False,
+                title="License already present",
+                message="RepoGuard found a top-level license-like file, so it will not add a review note.",
+                steps=("Checked the repository root.", "Stopped because a license-like file already exists."),
+            )
+
+    target = root / "LICENSE_REVIEW.md"
+    if target.exists():
+        original = target.read_text(encoding="utf-8")
+        if original == LICENSE_REVIEW_NOTE:
+            preview = _build_preview(original, original, context_lines=3)
+            return FixResult(
+                target,
+                changed=False,
+                fixable=True,
+                title="License review note already exists",
+                message="No change needed.",
+                preview=preview,
+                steps=("Checked the repository root.", "Found the existing RepoGuard license review note."),
+            )
+        return FixResult(
+            target,
+            changed=False,
+            fixable=False,
+            title="License review note exists",
+            message="LICENSE_REVIEW.md already exists with different content, so RepoGuard will not overwrite it.",
+            steps=("Checked the repository root.", "Refused to overwrite an existing review file."),
+        )
+
+    preview = _build_preview("", LICENSE_REVIEW_NOTE, context_lines=4)
+    steps = (
+        "Checked the repository root for a license-like file.",
+        "Prepared a LICENSE_REVIEW.md note instead of inventing legal license terms.",
+        "Generated a unified diff preview before writing.",
+    )
+    if write:
+        target.write_text(LICENSE_REVIEW_NOTE, encoding="utf-8")
+        return FixResult(
+            target,
+            changed=True,
+            fixable=True,
+            title="License review note created",
+            message="Created LICENSE_REVIEW.md as a reminder to choose a real license.",
+            preview=preview,
+            steps=steps + ("Wrote the approved note to disk.",),
+        )
+    return FixResult(
+        target,
+        changed=False,
+        fixable=True,
+        title="License review note preview",
+        message="Preview only. Apply the fix to create LICENSE_REVIEW.md.",
+        preview=preview,
+        steps=steps + ("Stopped before writing because this was a preview.",),
     )
 
 
@@ -194,6 +369,42 @@ def _patch_fastapi_upload_handler(text: str) -> str:
     if read_line in updated and not has_size_limit:
         updated = updated.replace(read_line, guarded_read, 1)
     return updated
+
+
+def _package_from_finding(title: str, recommendation: str) -> str:
+    match = re.search(r"Upgrade\s+([A-Za-z0-9_.-]+)\s+to:", recommendation)
+    if match:
+        return match.group(1).lower()
+    return title.split()[0].lower() if title.split() else ""
+
+
+def _version_from_recommendation(recommendation: str) -> str:
+    if "to:" not in recommendation:
+        return ""
+    version_text = recommendation.split("to:", 1)[1].strip().rstrip(".")
+    versions = [item.strip() for item in version_text.split(",") if item.strip()]
+    return versions[-1] if versions else ""
+
+
+def _patch_requirement(text: str, package_name: str, target_version: str) -> str:
+    lines = text.splitlines(keepends=True)
+    matches: list[int] = []
+    pattern = re.compile(rf"^\s*{re.escape(package_name)}\s*(?:==|~=|>=|<=|>|<|=|$)", re.IGNORECASE)
+    for index, line in enumerate(lines):
+        content = line.split("#", 1)[0].strip()
+        if pattern.match(content):
+            matches.append(index)
+    if len(matches) != 1:
+        return text
+
+    index = matches[0]
+    line = lines[index]
+    newline = "\n" if line.endswith("\n") else ""
+    comment = ""
+    if "#" in line:
+        comment = "  #" + line.split("#", 1)[1].rstrip("\r\n")
+    lines[index] = f"{package_name}=={target_version}{comment}{newline}"
+    return "".join(lines)
 
 
 def _resolve_inside(root: Path, relative_file: str) -> Path:

@@ -17,4 +17,5 @@ reports/*
 .env
 .env.*
 !.env.example
+presentation-notes.md
 .DS_Store

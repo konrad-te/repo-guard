@@ -65,6 +65,24 @@ max_concurrency = 2
 
             self.assertEqual(config.max_concurrency, 9)
 
+    def test_float_environment_settings_are_parsed(self):
+        with patch("repoguard.config.load_dotenv"), patch.dict(
+            os.environ,
+            {
+                "WARN_TOKEN_RATIO": "0.75",
+                "BUDGET_USD": "2.25",
+                "INPUT_COST_PER_1K": "0.1",
+                "OUTPUT_COST_PER_1K": "0.2",
+            },
+            clear=False,
+        ):
+            config = RepoGuardConfig.from_env()
+
+        self.assertEqual(config.warn_token_ratio, 0.75)
+        self.assertEqual(config.budget_usd, 2.25)
+        self.assertEqual(config.input_cost_per_1k, 0.1)
+        self.assertEqual(config.output_cost_per_1k, 0.2)
+
 
 if __name__ == "__main__":
     unittest.main()

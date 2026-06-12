@@ -82,9 +82,14 @@ Status: fulfilled.
 Evidence:
 
 - `src/repoguard/editing/patcher.py`
+- `src/repoguard/editing/fixes.py`
 - `tests/test_patcher.py`
+- `tests/test_fixes.py`
+- GUI guarded editor panel
 
 RepoGuard includes a guarded `repoguard patch` command for exact partial replacements. It is dry-run by default, requires `--yes` to write, refuses ambiguous replacements, and prevents path escape outside the selected repository.
+
+The GUI also previews and applies supported guided edits for upload handlers, vulnerable `requirements*.txt` dependencies, and missing-license review notes. The guarded editor panel displays the target file, safety steps, and unified diff before writing.
 
 ## 9. Deployable / Packaged Solution
 
@@ -143,4 +148,4 @@ The architecture is explainable at a high level without reading every line of Py
 ## Remaining Priority Work
 
 1. Prepare final screenshots and a short demo recording/script.
-2. Optionally add more auto-fix templates beyond upload-handler fixes.
+2. Practice the demo path: scan the example repo, preview an upload fix, preview a dependency fix, and show reports history.

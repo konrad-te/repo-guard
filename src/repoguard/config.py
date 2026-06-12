@@ -31,6 +31,10 @@ def _float_env(name: str, default: float) -> float:
     value = os.environ.get(name)
     if not value:
         return default
+    try:
+        return float(value)
+    except ValueError:
+        return default
 
 
 def _bool_env(name: str, default: bool) -> bool:
@@ -77,10 +81,6 @@ def _str_setting(config: dict, section: str, key: str, env_name: str, default: s
 def _bool_setting(config: dict, section: str, key: str, env_name: str, default: bool) -> bool:
     file_value = bool(_config_value(config, section, key, default))
     return _bool_env(env_name, file_value)
-    try:
-        return float(value)
-    except ValueError:
-        return default
 
 
 @dataclass(slots=True)
