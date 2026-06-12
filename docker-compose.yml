@@ -14,9 +14,13 @@ services:
       - .env
     ports:
       - "8765:8765"
+    environment:
+      REPOGUARD_HOST_PATH_PREFIX: ${REPOGUARD_HOST_PATH_PREFIX:-}
+      REPOGUARD_CONTAINER_PATH_PREFIX: /host-projects
     volumes:
       - ./reports:/app/reports
       - repoguard-cache:/app/.cache
+      - "${REPOGUARD_HOST_PROJECTS:-./examples}:/host-projects"
     command: ["gui", "--host", "0.0.0.0", "--port", "8765", "--output", "reports"]
 
 volumes:

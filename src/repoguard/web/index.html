@@ -138,7 +138,7 @@
       border-radius: 16px;
       background: rgba(13, 17, 23, .94);
       box-shadow: 0 26px 90px rgba(0, 0, 0, .38);
-      overflow: hidden;
+      overflow: visible;
     }
 
     .card-head {
@@ -150,6 +150,7 @@
       padding: 0 16px;
       border-bottom: 1px solid var(--line);
       background: var(--panel-2);
+      border-radius: 16px 16px 0 0;
     }
 
     .title {
@@ -328,19 +329,112 @@
     .metric.findings strong { color: var(--blue); }
     .metric.tokens strong { color: var(--green); }
 
+    .token-budget {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #080c12;
+      padding: 13px;
+      margin-top: 12px;
+    }
+
+    .token-head,
+    .token-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .token-head {
+      margin-bottom: 10px;
+    }
+
+    .token-title {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+
+    .token-percent {
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .token-bar {
+      height: 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #05080d;
+      overflow: hidden;
+    }
+
+    .token-bar span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+      transition: width .2s ease;
+    }
+
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .token-row {
+      border: 1px solid rgba(42, 54, 70, .8);
+      border-radius: 8px;
+      background: #0b1018;
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .token-row span {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .token-row strong {
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 12px;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .token-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
     .agents-panel {
       border: 1px solid var(--line);
       border-radius: 12px;
       background: #080c12;
       padding: 13px;
       margin-top: 14px;
+      overflow: visible;
     }
 
     .agent-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
       gap: 8px;
       margin-top: 10px;
+      overflow: visible;
     }
 
     .agent-card {
@@ -386,16 +480,17 @@
 
     .agent-tooltip {
       position: absolute;
-      left: 0;
+      right: 0;
       top: calc(100% + 8px);
       z-index: 20;
-      width: min(360px, calc(100vw - 48px));
+      width: min(380px, calc(100vw - 48px));
       display: none;
       border: 1px solid var(--line-2);
       border-radius: 10px;
       background: #0d1117;
       box-shadow: 0 22px 70px rgba(0, 0, 0, .48);
       padding: 12px;
+      overflow-wrap: anywhere;
     }
 
     .agent-card:hover .agent-tooltip,
@@ -747,6 +842,7 @@
     @media (max-width: 860px) {
       .grid,
       .metrics,
+      .token-grid,
       .editor-grid,
       .outputs {
         grid-template-columns: 1fr;
@@ -846,6 +942,21 @@
           <div class="metric risk"><span class="metric-label">risk <button class="help small" data-info="risk" aria-label="Explain risk metric" type="button">i</button></span><strong id="riskStat">-</strong></div>
           <div class="metric findings"><span class="metric-label">findings <button class="help small" data-info="findingCount" aria-label="Explain findings metric" type="button">i</button></span><strong id="findingStat">0</strong></div>
           <div class="metric tokens"><span class="metric-label">context tokens <button class="help small" data-info="tokens" aria-label="Explain token metric" type="button">i</button></span><strong id="tokenStat">0</strong></div>
+        </div>
+
+        <div class="token-budget">
+          <div class="token-head">
+            <span class="token-title">token budget <button class="help small" data-info="tokenBudget" aria-label="Explain token budget" type="button">i</button></span>
+            <span class="token-percent" id="tokenPercent">0%</span>
+          </div>
+          <div class="token-bar" aria-hidden="true"><span id="tokenBar"></span></div>
+          <div class="token-grid">
+            <div class="token-row"><span>used</span><strong id="tokenUsed">0</strong></div>
+            <div class="token-row"><span>max context</span><strong id="tokenMax">0</strong></div>
+            <div class="token-row"><span>hard cap</span><strong id="tokenHardCap">0</strong></div>
+            <div class="token-row"><span>est. cost</span><strong id="tokenCost">$0.0000</strong></div>
+          </div>
+          <div class="token-note" id="tokenNote">Run a scan to see token usage.</div>
         </div>
 
         <div class="agents-panel">
@@ -984,6 +1095,19 @@ Try scanning examples/vulnerable-upload-app.</div>
           <p>RepoGuard counts scanner output and report context even when Gemini is off or unavailable, so it can warn or stop before the configured hard cap is exceeded.</p>
         `
       },
+      tokenBudget: {
+        title: 'Token budget',
+        body: `
+          <p>The token budget shows how much scan context RepoGuard prepared for the final report.</p>
+          <ul>
+            <li><strong>Used</strong> is the estimated number of context tokens consumed by scanner output and report input.</li>
+            <li><strong>Max context</strong> is the normal budget RepoGuard tries to stay under.</li>
+            <li><strong>Hard cap</strong> is the absolute stop limit configured in the environment.</li>
+            <li><strong>Estimated cost</strong> is a local estimate based on the configured token price.</li>
+          </ul>
+          <p>This is useful for showing that the agent manages context instead of blindly sending unlimited data to AI.</p>
+        `
+      },
       summary: {
         title: 'Final report',
         body: `
@@ -1052,11 +1176,43 @@ Try scanning examples/vulnerable-upload-app.</div>
       el.className = `inline-status ${state}`.trim();
     }
 
+    function formatNumber(value) {
+      return Number(value || 0).toLocaleString();
+    }
+
+    function formatCurrency(value) {
+      return `$${Number(value || 0).toFixed(4)}`;
+    }
+
     function setStats(report) {
       const risk = report?.risk_level || '-';
+      const budget = report?.budget || {};
+      const used = Number(budget.used_tokens || 0);
+      const maxContext = Number(budget.max_context_tokens || 0);
+      const hardCap = Number(budget.hard_token_cap || 0);
+      const estimatedCost = Number(budget.estimated_cost_usd || 0);
+      const percent = maxContext > 0 ? Math.min(100, Math.round((used / maxContext) * 100)) : 0;
+      const warnings = Array.isArray(budget.warnings) ? budget.warnings : [];
+
       $('riskStat').textContent = String(risk).toUpperCase();
       $('findingStat').textContent = report?.findings?.length || 0;
-      $('tokenStat').textContent = report?.budget?.used_tokens || 0;
+      $('tokenStat').textContent = formatNumber(used);
+      $('tokenPercent').textContent = `${percent}%`;
+      $('tokenUsed').textContent = formatNumber(used);
+      $('tokenMax').textContent = formatNumber(maxContext);
+      $('tokenHardCap').textContent = formatNumber(hardCap);
+      $('tokenCost').textContent = formatCurrency(estimatedCost);
+      $('tokenBar').style.width = `${percent}%`;
+
+      if (!report) {
+        $('tokenNote').textContent = 'Run a scan to see token usage.';
+      } else if (warnings.length) {
+        $('tokenNote').textContent = warnings.join(' ');
+      } else if (budget.capped) {
+        $('tokenNote').textContent = 'The scan context reached the hard token cap.';
+      } else {
+        $('tokenNote').textContent = 'Estimated scanner/report context used by this scan.';
+      }
     }
 
     function setReportBrief(report) {

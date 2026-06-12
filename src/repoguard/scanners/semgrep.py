@@ -6,6 +6,7 @@ from pathlib import Path
 from repoguard.execution.runner import GuardedCommandRunner
 from repoguard.models import AgentStatus, Finding, ScannerResult, Severity
 from repoguard.scanners.base import ScannerAgent, run_command_scanner
+from repoguard.scanners.paths import semgrep_exclude_args
 
 
 def _severity(extra: dict) -> Severity:
@@ -28,7 +29,15 @@ class SemgrepScanner(ScannerAgent):
             self,
             repo_path,
             runner,
-            ["semgrep", "scan", "--config", "auto", "--json", str(repo_path)],
+            [
+                "semgrep",
+                "scan",
+                "--config",
+                "auto",
+                "--json",
+                *semgrep_exclude_args(),
+                str(repo_path),
+            ],
         )
         if result.command and result.command.stdout:
             try:

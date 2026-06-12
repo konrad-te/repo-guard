@@ -6,6 +6,7 @@ from pathlib import Path
 from repoguard.execution.runner import GuardedCommandRunner
 from repoguard.models import AgentStatus, Finding, ScannerResult, Severity
 from repoguard.scanners.base import ScannerAgent, run_command_scanner
+from repoguard.scanners.paths import bandit_exclude_paths
 
 
 SEVERITY_MAP = {
@@ -13,7 +14,6 @@ SEVERITY_MAP = {
     "MEDIUM": Severity.MEDIUM,
     "HIGH": Severity.HIGH,
 }
-
 
 class BanditScanner(ScannerAgent):
     name = "bandit"
@@ -24,7 +24,7 @@ class BanditScanner(ScannerAgent):
             self,
             repo_path,
             runner,
-            ["bandit", "-r", str(repo_path), "-f", "json"],
+            ["bandit", "-r", str(repo_path), "-f", "json", "-x", bandit_exclude_paths(repo_path)],
         )
         if result.command and result.command.stdout:
             try:

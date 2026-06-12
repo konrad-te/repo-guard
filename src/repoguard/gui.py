@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import json
 import mimetypes
+import os
+import re
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -19,6 +21,7 @@ from repoguard.scanners.registry import default_scanners
 
 
 WEB_ROOT = Path(__file__).parent / "web"
+WINDOWS_ABSOLUTE_PATH_RE = re.compile(r"^[A-Za-z]:[\\/]")
 
 
 AGENT_DETAILS = {
@@ -133,6 +136,11 @@ class RepoGuardGuiHandler(BaseHTTPRequestHandler):
         if not repo:
             self._json({"error": "repo is required"}, status=400)
             return
+        try:
+            scan_target = _translate_windows_host_path(repo)
+        except ValueError as exc:
+            self._json({"error": str(exc), "events": [f"Preparing workspace for {repo}"]}, status=400)
+            return
         events: list[str] = []
         try:
             config = RepoGuardConfig.from_env(self.server.config_path)
@@ -143,7 +151,7 @@ class RepoGuardGuiHandler(BaseHTTPRequestHandler):
             if payload.get("max_concurrency"):
                 config.max_concurrency = int(payload["max_concurrency"])
             orchestrator = ScanOrchestrator(config, progress=events.append)
-            report, markdown_path, json_path = asyncio.run(orchestrator.scan(repo))
+            report, markdown_path, json_path = asyncio.run(orchestrator.scan(scan_target))
             self._json(
                 {
                     "report": report.to_dict(),
@@ -330,3 +338,40 @@ def run_gui(host: str, port: int, report_dir: Path, config_path: Path | None = N
     print(f"RepoGuard GUI running at http://{host}:{port}")
     print("Press Ctrl+C to stop.")
     server.serve_forever()
+
+
+def _translate_windows_host_path(repo: str) -> str:
+    if not WINDOWS_ABSOLUTE_PATH_RE.match(repo):
+        return repo
+
+    host_prefix = os.environ.get("REPOGUARD_HOST_PATH_PREFIX") or os.environ.get("REPOGUARD_HOST_PROJECTS")
+    container_prefix = os.environ.get("REPOGUARD_CONTAINER_PATH_PREFIX", "/host-projects")
+    if host_prefix:
+        repo_path = _windows_slash_path(repo)
+        prefix_path = _windows_slash_path(host_prefix).rstrip("/")
+        repo_norm = repo_path.lower()
+        prefix_norm = prefix_path.lower()
+        if repo_norm == prefix_norm or repo_norm.startswith(prefix_norm + "/"):
+            relative = repo_path[len(prefix_path) :].lstrip("/")
+            translated = Path(container_prefix, *[part for part in relative.split("/") if part])
+            if translated.exists():
+                return str(translated)
+            raise ValueError(
+                "RepoGuard translated this Windows path to "
+                f"{translated}, but that folder is not mounted inside Docker. "
+                "Restart the GUI with docker compose up -d --force-recreate gui after setting "
+                "REPOGUARD_HOST_PROJECTS and REPOGUARD_HOST_PATH_PREFIX in .env."
+            )
+
+    if os.name != "nt":
+        raise ValueError(
+            "This looks like a Windows path, but the RepoGuard GUI is running inside Docker/Linux. "
+            "Docker cannot see C:\\ paths unless they are mounted. Set "
+            "REPOGUARD_HOST_PROJECTS and REPOGUARD_HOST_PATH_PREFIX in .env, restart the GUI container, "
+            "then scan the same Windows path again. You can also run the GUI locally outside Docker."
+        )
+    return repo
+
+
+def _windows_slash_path(value: str) -> str:
+    return value.strip().replace("\\", "/").rstrip("/")

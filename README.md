@@ -45,6 +45,22 @@ Then open:
 http://127.0.0.1:8765
 ```
 
+On Windows, Docker cannot automatically see arbitrary `C:\...` folders. To scan local projects from the Docker GUI, set these values in `.env` and restart the GUI container:
+
+```text
+REPOGUARD_HOST_PROJECTS=C:\Users\your-name\Desktop\Projects
+REPOGUARD_HOST_PATH_PREFIX=C:\Users\your-name\Desktop\Projects
+REPOGUARD_CONTAINER_PATH_PREFIX=/host-projects
+```
+
+After that, you can enter a normal Windows path in the GUI, such as:
+
+```text
+C:\Users\your-name\Desktop\Projects\Some App
+```
+
+RepoGuard maps that path to the mounted Docker folder before scanning.
+
 Reports are written to:
 
 ```text
